@@ -1,0 +1,11 @@
+{{ define "module" }}
+
+= Module {{ .Name }}
+:toc:
+
+{{ if .Readme }}
+== **__Readme__**
+
+{{ .Readme }}
+{{ end }}
+{{ end }}

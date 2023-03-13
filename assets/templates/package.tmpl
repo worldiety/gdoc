@@ -1,0 +1,7 @@
+{{ define "package" }}
+== Package {{ .Name }}
+=== Imports
+{{ range .Imports }}
+* {{ . }}
+{{ end }}
+{{ end }}

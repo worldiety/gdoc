@@ -1,0 +1,17 @@
+{{ define "functions" }}
+{{ if . }}
+=== Functions
+{{ range . }}
+{{ .Name }}{{ if .Parameters }}({{ range $key, $val := .Parameters }}{{$val.Name}} {{$val.SrcTypeDefinition}}, {{end}}){{end}}{{ if .Results }}{{ range $key, $val := .Results }}{{$val.Name}} {{$val.SrcTypeDefinition}}, {{end}}{{end}}
+
+{{ if .Parameters }}* Parameters
+{{ range .Parameters }}
+** {{ .Name }} ({{ .SrcTypeDefinition }})
+{{- end }}
+{{ end }}
+{{ if .Comment }}
+* Comment: {{ .Comment }}
+{{ end }}
+{{ end }}
+{{ end }}
+{{ end }}

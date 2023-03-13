@@ -1,0 +1,9 @@
+{{ define "constants" }}
+{{ if . }}
+=== Constants
+{{ range . }}
+* {{ .Name }}
+{{ if eq .Comment "" }}{{ else }}** __Comment__: {{ .Comment }} +{{ end }}
+{{ end }}
+{{ end }}
+{{ end }}
