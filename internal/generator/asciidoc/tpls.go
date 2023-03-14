@@ -6,12 +6,12 @@ import (
 	"text/template"
 )
 
-//go:embed *.tmpl
+//go:embed templates
 var templateFiles embed.FS
 var Templates *template.Template
 
 func init() {
-	tpl, err := template.ParseFS(templateFiles, "*.tmpl")
+	tpl, err := template.ParseFS(templateFiles, "templates/*.tmpl")
 	if err != nil {
 		panic(fmt.Errorf("cannot parse embedded templates: %w", err))
 	}

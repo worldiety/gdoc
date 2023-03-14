@@ -19,6 +19,8 @@ func (f OutputFormat) Category() string {
 		return "stdlib"
 	case Adoc, Pdf:
 		return "adoc"
+	default:
+		return ""
 	}
 }
 

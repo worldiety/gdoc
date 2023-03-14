@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"godocgenerator/internal/api"
-	"godocgenerator/internal/parser/golang"
 	"log"
 	"reflect"
 	"sort"
@@ -53,30 +52,24 @@ func ExecuteTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 	return nil
 }
 
-var TemplatePattern = "assets/templates/*.tmpl"
-
 // CreateModuleTemplate takes the parsed module, adds all its information to text templates and returns the outPut buffer
 func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
-	mainTemplate, err := template.New("").Funcs(template.FuncMap{"lastKey": golang.LastKey}).ParseGlob(TemplatePattern)
-	if err != nil {
-
-		return nil, fmt.Errorf("failed to glob parse template files: %w", err)
-	}
+	mainTemplate := Templates
 
 	var outPut bytes.Buffer
-	if err = ExecuteTemplate(mainTemplate, module, &outPut); err != nil {
+	if err := ExecuteTemplate(mainTemplate, module, &outPut); err != nil {
 
 		return nil, fmt.Errorf("failed to execute template: %w", err)
 	}
 	sortedPackages := sortPackages(module.Packages)
 	for _, p := range sortedPackages {
-		if err = ExecuteTemplate(mainTemplate, p, &outPut); err != nil {
+		if err := ExecuteTemplate(mainTemplate, p, &outPut); err != nil {
 
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 		data := []any{p.Consts, p.Vars, p.Functions}
 		for _, items := range data {
-			if err = ExecuteTemplate(mainTemplate, items, &outPut); err != nil {
+			if err := ExecuteTemplate(mainTemplate, items, &outPut); err != nil {
 
 				return nil, fmt.Errorf("failed to execute template: %w", err)
 			}
