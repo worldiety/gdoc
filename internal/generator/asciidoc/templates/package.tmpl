@@ -1,7 +1,3 @@
-{{ define "package" }}
+{{ define "package" -}}
 == Package {{ .Name }}
-=== Imports
-{{ range .Imports }}
-* {{ . }}
-{{ end }}
-{{ end }}
+{{- end }}

@@ -1,5 +1,5 @@
-{{ define "functions" }}
-{{ if . }}
+{{- define "functions" -}}
+{{- if . }}
 === Functions
 {{ range . }}
 {{ .Name }}{{ if .Parameters }}({{ range $key, $val := .Parameters }}{{$val.Name}} {{$val.SrcTypeDefinition}}, {{end}}){{end}}{{ if .Results }}{{ range $key, $val := .Results }}{{$val.Name}} {{$val.SrcTypeDefinition}}, {{end}}{{end}}
@@ -8,10 +8,10 @@
 {{ range .Parameters }}
 ** {{ .Name }} ({{ .SrcTypeDefinition }})
 {{- end }}
-{{ end }}
+{{- end }}
 {{ if .Comment }}
 * Comment: {{ .Comment }}
+{{ end -}}
 {{ end }}
-{{ end }}
-{{ end }}
+{{ end -}}
 {{ end }}
