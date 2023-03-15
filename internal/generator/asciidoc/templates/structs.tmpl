@@ -1,0 +1,12 @@
+{{- define "structs" -}}
+{{ if .Structs }}
+{{ range .Structs }}
+* {{ .Name }}
+** {{ .Comment }}
+** Fields
+{{ range .Fields }}
+{{ template "field" }}
+{{ end }}
+{{ end }}
+{{ end }}
+{{ end }}

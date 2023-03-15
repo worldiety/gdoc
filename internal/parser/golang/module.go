@@ -100,7 +100,8 @@ func newPackage(pkg Package) *api.Package {
 				p.Vars[d.name] = &api.Variable{
 					Name:    d.name,
 					Comment: d.doc,
-
+					//SrcTypeDefinition: p.,
+					//TypeDefinition: ,
 					Stereotypes: []api.Stereotype{api.StereotypeProperty}}
 			}
 		}

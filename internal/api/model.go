@@ -50,8 +50,8 @@ type Package struct {
 }
 type Comment string
 type Struct struct {
-	ID RefId
-	Comment
+	ID         RefId
+	Comment    Comment
 	Name       string
 	Fields     []*Field
 	Methods    []*Method
@@ -66,7 +66,10 @@ type Function struct {
 	Results    map[string]*Parameter
 }
 
-type Method Function
+type Method struct {
+	Function
+	Receiver *Struct
+}
 
 type Constructor struct {
 	ID         RefId
@@ -80,19 +83,20 @@ type Field struct {
 	SrcTypeDefinition string
 	Stereotypes       []Stereotype
 }
-type Constant Field
-type Variable Field
-type Enum Field
-type Example struct {
-	ID    RefId
-	Value string
-}
+
 type Interface struct {
 	ID        RefId
 	Name      string
 	Comment   string
 	Methods   []*Method
 	Functions []*Function
+}
+type Constant Field
+type Variable Field
+type Enum Field
+type Example struct {
+	ID    RefId
+	Value string
 }
 type Parameter Field
 

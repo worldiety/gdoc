@@ -2,7 +2,6 @@ package asciidoc
 
 import (
 	"godocgenerator/internal/api"
-	"strings"
 	"testing"
 )
 
@@ -30,7 +29,6 @@ func TestCreateModuleTemplate(t *testing.T) {
 		},
 	}
 
-	TemplatePattern = "/Users/mrose/git/projects/wdy/golang/godocgenerator/" + TemplatePattern
 	// Call the function
 	buffer, err := CreateModuleTemplate(module)
 
@@ -45,8 +43,8 @@ func TestCreateModuleTemplate(t *testing.T) {
 	}
 
 	// Check if the buffer contains the expected content
-	expectedContent := "\n\n= test\n:toc:\n\n\n\n== Package mypackage\n\n\n=== Constants\n\n**Name**: c1 +\n**Comment**: testComment1 +\n\n"
-	if !strings.Contains(buffer.String(), expectedContent) {
+	expectedContent := "= Module test\n:toc:\n\n\n== Package mypackage\n=== Constants\n\n* c1\n** __Comment__: testComment1\n* c2\n** __Comment__: testComment2\n=== Variables\n\nv1 * Comment: var test comment 1\nv2 * Comment: var test comment 2\n\n=== Functions\n\nf1(p1 , )\n\n* Parameters\n\n** p1 ()\n\n* Comment: Function 1\n\nf2(p1 , )r1 , \n\n* Parameters\n\n** p1 ()\n\n* Comment: Function 2\n\n"
+	if buffer.String() != expectedContent {
 		t.Errorf("CreateModuleTemplate returned an unexpected buffer content: %v", buffer.String())
 	}
 }
