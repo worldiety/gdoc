@@ -18,3 +18,4 @@
 # test adoc and pdf files
 *.pdf
 *.adoc
+*.iml
