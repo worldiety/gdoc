@@ -5,56 +5,113 @@ import (
 	"go/types"
 	"godocgenerator/internal/api"
 	"golang.org/x/tools/go/packages"
+	"strings"
 )
 
-var loadedPackages = map[string]*packages.Package{}
-var fnMap = map[string]*api.Function{}
+type loadedPackages struct {
+	pkgs  map[string]*packages.Package
+	fnMap map[string]*api.Function
+}
+
+func newLoadedPackages() *loadedPackages {
+	return &loadedPackages{
+		pkgs:  map[string]*packages.Package{},
+		fnMap: map[string]*api.Function{},
+	}
+}
 
 func Resolve(m *api.Module) error {
+	lp := newLoadedPackages()
+	var err error
+
 	for dir, _ := range m.Packages {
-		err := loadPackages(dir)
+		err = lp.loadPackages(dir)
 		if err != nil {
 			return err
 		}
 	}
 
-	fnSignatures(m)
+	fnSignatures(m, lp)
+	packageTypes(m, lp)
 
 	return nil
 }
 
-func loadPackages(dir string) error {
+func (lp *loadedPackages) loadPackages(dir string) error {
 	pkgs, err := packages.Load(&packages.Config{
 		Mode:  packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles | packages.NeedImports | packages.NeedDeps | packages.NeedExportFile | packages.NeedTypes | packages.NeedTypesInfo | packages.NeedTypesSizes | packages.NeedModule | packages.NeedEmbedFiles | packages.NeedEmbedPatterns,
-		Tests: true,
+		Tests: false,
 	}, dir)
 	if err != nil {
 		return fmt.Errorf("could not load packages from %s: %w", dir, err)
 	}
+
 	for _, pkg := range pkgs {
-		loadedPackages[pkg.Name] = pkg
+		lp.pkgs[pkg.Name] = pkg
 	}
 	return nil
 }
 
-func fnSignatures(m *api.Module) {
+func fnSignatures(m *api.Module, lp *loadedPackages) {
 	for _, p := range m.Packages {
 		for _, fn := range p.Functions {
-			fnMap[fn.Name] = fn
+			lp.fnMap[fn.Name] = fn
 		}
 	}
 
-	for _, lp := range loadedPackages {
-		for n, function := range fnMap {
-			if fn := lp.Types.Scope().Lookup(n); fn != nil {
+	for _, pkg := range lp.pkgs {
+		for n, function := range lp.fnMap {
+			if fn := pkg.Types.Scope().Lookup(n); fn != nil {
 				function.Signature = addNameToSignature(fn)
 			}
 		}
 	}
 }
 
+func packageTypes(m *api.Module, lp *loadedPackages) {
+	for _, pkg := range lp.pkgs {
+		for i, tn := range pkg.Types.Scope().Names() {
+			if m.Packages[pkg.PkgPath] == nil {
+				continue
+			}
+			if m.Packages[pkg.PkgPath].Types == nil {
+				m.Packages[pkg.PkgPath].Types = make(map[int]api.BaseType, 0)
+			}
+			if pkg.Types.Scope().Lookup(tn).Exported() {
+				m.Packages[pkg.PkgPath].Types[i] = api.BaseType(tn)
+			}
+		}
+	}
+}
+
 func addNameToSignature(fn types.Object) string {
-	sigString := fn.Type().String()
+	sigString := strings.Replace(fn.Type().String(), fn.Pkg().Path(), fn.Pkg().Name(), -1)
+	params := fn.Type().(*types.Signature).Params()
+	results := fn.Type().(*types.Signature).Results()
+	sigString = replaceParameterString(params, sigString)
+	sigString = replaceParameterString(results, sigString)
 	name := fn.Name()
-	return sigString[:4] + " " + name + sigString[4:]
+	return fmt.Sprintf("%s%s%s", sigString[:4], " "+name, sigString[4:])
+}
+
+func replaceParameterString(params *types.Tuple, sigString string) string {
+	for i := 0; i < params.Len(); i++ {
+		p := params.At(i)
+		origin := p.Origin().Type().String()
+		replacement := replacementString(origin)
+		sigString = strings.Replace(sigString, origin, replacement, -1)
+	}
+	return sigString
+}
+
+func replacementString(origin string) string {
+	if !strings.Contains(origin, "/") {
+		return origin
+	}
+	lastSlashIndex := strings.LastIndex(origin, "/")
+	var firstReplacementIndex int
+	if strings.Contains(origin, "*") {
+		firstReplacementIndex = strings.LastIndex(origin, "*") + 1
+	}
+	return strings.Replace(origin, origin[firstReplacementIndex:lastSlashIndex+1], "", -1)
 }

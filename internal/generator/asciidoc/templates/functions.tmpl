@@ -3,6 +3,19 @@
 === Functions
 {{ range . }}
 {{- if .Signature }}
+* {{ .Signature }}
+{{ if .Parameters }}
+** Parameters
+{{ range .Parameters }}
+*** {{ .Name }} ({{ .SrcTypeDefinition }})
+{{- end }}
+{{- end }}
+{{ if .Comment }}
+* Comment: {{ .Comment }}
+{{ end }}
+.Code
+[%collapsible%open]
+====
 [source,go]
 ----
 {{ if .Comment }}
@@ -10,15 +23,8 @@
 {{- end }}
 {{- .Signature }}
 ----
+====
 {{- end }}
-{{ if .Parameters }}* Parameters
-{{ range .Parameters }}
-** {{ .Name }} ({{ .SrcTypeDefinition }})
-{{- end }}
-{{- end }}
-{{ if .Comment }}
-* Comment: {{ .Comment }}
-{{ end -}}
 {{ end }}
 {{ end -}}
 {{ end }}

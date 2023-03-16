@@ -1,8 +1,26 @@
 package api
 
-import "sort"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"sort"
+)
 
 type RefId int
+
+type RefId2 struct{
+	ImportPath string
+	Identifier string
+}
+
+func (id RefId2)ID()string{
+	tmp :=sha256.Sum224([]byte(id.ImportPath+id.Identifier))
+	return hex.EncodeToString(tmp[:])
+}
+
+func (id RefId2)Named()bool{
+	return id.Identifier == ""
+}
 
 // Stereotype as usually interpreted in found context but not expressed in language explicitly.
 type Stereotype string
@@ -76,6 +94,11 @@ type Constructor struct {
 	ID         RefId
 	Comment    string
 	parameters []*Parameter
+}
+
+type Bla struct{
+	Yolo func(x int)
+	*Bla
 }
 type Field struct {
 	Name              string
