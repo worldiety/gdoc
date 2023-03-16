@@ -66,6 +66,9 @@ func Apply(cfg Config) ([]byte, error) {
 	}
 
 	node, err := golang.Parse(cfg.ModPath, pkgs...)
+	p, err := golang.Resolve(cfg.ModPath)
+	print(p)
+
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse from %s: %w", cfg.ModPath, err)
 	}

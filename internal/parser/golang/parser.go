@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"godocgenerator/internal/api"
 	"golang.org/x/exp/slices"
+	"golang.org/x/tools/go/packages"
 	"io/fs"
 	"path/filepath"
 	"strings"
@@ -16,6 +17,7 @@ import (
 type Package struct {
 	pkg  *ast.Package
 	dpkg *doc.Package
+	ppkg *packages.Package
 	dir  string
 }
 
@@ -51,6 +53,13 @@ func Parse(dir string, onlyImports ...string) (*api.Module, error) {
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse: %w", err)
 		}
+
+		pkgpkgs, err := Resolve(dir)
+		if err != nil {
+			return nil, fmt.Errorf("cannot resolve: %w", err)
+		}
+
+		print(pkgpkgs)
 
 		importPath := modName + "/" + rel
 		if len(onlyImports) > 0 {

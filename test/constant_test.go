@@ -12,6 +12,8 @@ const (
 	Test = "ABC"
 )
 
+var ReadError error
+
 type TestType string
 
 // A test variable

@@ -55,6 +55,7 @@ func ExecuteTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 // CreateModuleTemplate takes the parsed module, adds all its information to text templates and returns the outPut buffer
 func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
 	var outPut bytes.Buffer
+
 	if err := ExecuteTemplate(Templates, module, &outPut); err != nil {
 
 		return nil, fmt.Errorf("failed to execute template: %w", err)
@@ -65,6 +66,7 @@ func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
 
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
+
 		data := []any{p.Consts, p.Vars, p.Functions}
 		for _, items := range data {
 			if err := ExecuteTemplate(Templates, items, &outPut); err != nil {

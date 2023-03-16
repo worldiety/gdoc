@@ -62,6 +62,7 @@ type Function struct {
 	ID         RefId
 	Name       string
 	Comment    string
+	Signature  string
 	Parameters map[string]*Parameter
 	Results    map[string]*Parameter
 }

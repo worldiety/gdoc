@@ -53,6 +53,7 @@ func RenderToHtml(adocFilename string) (string, error) {
 	htmlFileName := "htmlOutput.html"
 	// use asciidoctor to create a html file from the adoc file
 	cmd := exec.Command("asciidoctor", "-b", "html5", "-o", htmlFileName, adocFilename)
+	setupCMD(cmd)
 	err := cmd.Run()
 	if err != nil {
 		return "", err
@@ -62,15 +63,21 @@ func RenderToHtml(adocFilename string) (string, error) {
 
 func RenderToPdf(adocFileName string) error {
 	// Use the asciidoctor-pdf library to generate a PDF from the adoc file
+	// get commands from commadn line and export errors to it
+	// TODO extract to func that can be used in html conversion as well.
 	cmd := exec.Command("asciidoctor-pdf", adocFileName)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
+	setupCMD(cmd)
 
 	err := cmd.Run()
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func setupCMD(cmd *exec.Cmd) {
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
 }
