@@ -54,13 +54,6 @@ func Parse(dir string, onlyImports ...string) (*api.Module, error) {
 			return nil, fmt.Errorf("cannot parse: %w", err)
 		}
 
-		pkgpkgs, err := Resolve(dir)
-		if err != nil {
-			return nil, fmt.Errorf("cannot resolve: %w", err)
-		}
-
-		print(pkgpkgs)
-
 		importPath := modName + "/" + rel
 		if len(onlyImports) > 0 {
 			if !slices.Contains(onlyImports, importPath) {

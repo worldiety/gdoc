@@ -2,8 +2,15 @@
 {{- if . }}
 === Functions
 {{ range . }}
-{{ .Name }}{{ if .Parameters }}({{ range $key, $val := .Parameters }}{{$val.Name}} {{$val.SrcTypeDefinition}}, {{end}}){{end}}{{ if .Results }}{{ range $key, $val := .Results }}{{$val.Name}} {{$val.SrcTypeDefinition}}, {{end}}{{end}}
-
+{{- if .Signature }}
+[source,go]
+----
+{{ if .Comment }}
+// {{ .Comment }}
+{{- end }}
+{{- .Signature }}
+----
+{{- end }}
 {{ if .Parameters }}* Parameters
 {{ range .Parameters }}
 ** {{ .Name }} ({{ .SrcTypeDefinition }})

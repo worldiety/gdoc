@@ -66,11 +66,13 @@ func Apply(cfg Config) ([]byte, error) {
 	}
 
 	node, err := golang.Parse(cfg.ModPath, pkgs...)
-	p, err := golang.Resolve(cfg.ModPath)
-	print(p)
-
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse from %s: %w", cfg.ModPath, err)
+	}
+	// add information not available in the ast package to the module
+	err = golang.Resolve(node)
+	if err != nil {
+		return nil, fmt.Errorf("cannot resolve %s: %w", node.Name, err)
 	}
 
 	tmp := map[api.ImportPath]*api.Package{}

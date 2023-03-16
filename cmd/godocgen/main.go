@@ -49,6 +49,7 @@ func main() {
 	}
 }
 
+// use asciidoc to render a html from the output buffer
 func RenderToHtml(adocFilename string) (string, error) {
 	htmlFileName := "htmlOutput.html"
 	// use asciidoctor to create a html file from the adoc file
