@@ -1,7 +1,7 @@
 package asciidoc
 
 import (
-	"godocgenerator/internal/api"
+	"github.com/worldiety/gdoc/internal/api"
 	"testing"
 )
 

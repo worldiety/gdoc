@@ -4,7 +4,7 @@ package main
 
 import (
 	"flag"
-	"godocgenerator/internal/app"
+	"github.com/worldiety/gdoc/internal/app"
 	"log"
 	"os"
 	"os/exec"

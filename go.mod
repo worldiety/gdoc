@@ -1,4 +1,4 @@
-module godocgenerator
+module github.com/worldiety/gdoc
 
 go 1.20
 

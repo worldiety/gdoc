@@ -2,9 +2,9 @@ package golang
 
 import (
 	"fmt"
+	"github.com/worldiety/gdoc/internal/api"
 	"go/ast"
 	"go/doc"
-	"godocgenerator/internal/api"
 	"os"
 	"path/filepath"
 	"strconv"

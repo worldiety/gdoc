@@ -3,7 +3,7 @@ package asciidoc
 import (
 	"bytes"
 	"fmt"
-	"godocgenerator/internal/api"
+	"github.com/worldiety/gdoc/internal/api"
 	"log"
 	"reflect"
 	"sort"
