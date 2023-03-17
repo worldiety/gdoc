@@ -6,19 +6,17 @@ import (
 	"sort"
 )
 
-type RefId int
-
-type RefId2 struct{
+type RefId struct {
 	ImportPath string
 	Identifier string
 }
 
-func (id RefId2)ID()string{
-	tmp :=sha256.Sum224([]byte(id.ImportPath+id.Identifier))
+func (id RefId) ID() string {
+	tmp := sha256.Sum224([]byte(id.ImportPath + id.Identifier))
 	return hex.EncodeToString(tmp[:])
 }
 
-func (id RefId2)Named()bool{
+func (id RefId) Named() bool {
 	return id.Identifier == ""
 }
 
@@ -96,7 +94,7 @@ type Constructor struct {
 	parameters []*Parameter
 }
 
-type Bla struct{
+type Bla struct {
 	Yolo func(x int)
 	*Bla
 }

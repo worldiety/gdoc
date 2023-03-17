@@ -49,6 +49,7 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 	for _, pkg := range pkgs {
 		lp.pkgs[pkg.Name] = pkg
 	}
+
 	return nil
 }
 
@@ -90,8 +91,8 @@ func addNameToSignature(fn types.Object) string {
 	results := fn.Type().(*types.Signature).Results()
 	sigString = replaceParameterString(params, sigString)
 	sigString = replaceParameterString(results, sigString)
-	name := fn.Name()
-	return fmt.Sprintf("%s%s%s", sigString[:4], " "+name, sigString[4:])
+
+	return fmt.Sprintf("%s%s%s", sigString[:4], " "+fn.Name(), sigString[4:])
 }
 
 func replaceParameterString(params *types.Tuple, sigString string) string {
@@ -101,6 +102,7 @@ func replaceParameterString(params *types.Tuple, sigString string) string {
 		replacement := replacementString(origin)
 		sigString = strings.Replace(sigString, origin, replacement, -1)
 	}
+
 	return sigString
 }
 
@@ -113,5 +115,6 @@ func replacementString(origin string) string {
 	if strings.Contains(origin, "*") {
 		firstReplacementIndex = strings.LastIndex(origin, "*") + 1
 	}
+
 	return strings.Replace(origin, origin[firstReplacementIndex:lastSlashIndex+1], "", -1)
 }

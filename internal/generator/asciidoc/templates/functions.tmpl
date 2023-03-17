@@ -8,13 +8,13 @@
 ** Parameters
 {{ range .Parameters }}
 *** {{ .Name }} ({{ .SrcTypeDefinition }})
-{{- end }}
+{{- end -}}
 {{- end }}
 {{ if .Comment }}
 * Comment: {{ .Comment }}
 {{ end }}
 .Code
-[%collapsible%open]
+[%collapsible]
 ====
 [source,go]
 ----
