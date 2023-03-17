@@ -55,6 +55,7 @@ func newPackage(pkg Package) *api.Package {
 		Doc:     pkg.dpkg.Doc,
 		Name:    pkg.dpkg.Name,
 		Imports: tmpImports,
+		Types:   map[string]api.RefId{},
 	}
 
 	if pkg.dpkg.Name == "main" {
@@ -71,13 +72,6 @@ func newPackage(pkg Package) *api.Package {
 			p.Functions[f.Name] = newFunc(f)
 		}
 
-	}
-
-	if len(pkg.dpkg.Types) > 0 {
-		p.Types = map[int]api.BaseType{}
-		for i, t := range pkg.dpkg.Types {
-			p.Types[i] = newType(t)
-		}
 	}
 
 	if len(pkg.dpkg.Consts) > 0 {

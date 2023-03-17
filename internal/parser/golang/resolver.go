@@ -5,6 +5,7 @@ import (
 	"go/types"
 	"godocgenerator/internal/api"
 	"golang.org/x/tools/go/packages"
+	"reflect"
 	"strings"
 )
 
@@ -32,7 +33,7 @@ func Resolve(m *api.Module) error {
 	}
 
 	fnSignatures(m, lp)
-	packageTypes(m, lp)
+	addRefIDs(m)
 
 	return nil
 }
@@ -69,15 +70,32 @@ func fnSignatures(m *api.Module, lp *loadedPackages) {
 	}
 }
 
-func packageTypes(m *api.Module, lp *loadedPackages) {
-	for _, pkg := range lp.pkgs {
-		for i, tn := range pkg.Types.Scope().Names() {
-			if m.Packages[pkg.PkgPath].Types == nil {
-				m.Packages[pkg.PkgPath].Types = make(map[int]api.BaseType, 0)
+func addRefIDs(m *api.Module) {
+	for path, p := range m.Packages {
+		p.ID = api.RefId{
+			ImportPath: path,
+			Identifier: p.Name,
+		}
+		for id, variable := range p.Vars {
+			variable.TypeDefinition = api.RefId{
+				ImportPath: path,
+				Identifier: id,
 			}
-			if pkg.Types.Scope().Lookup(tn).Exported() {
-				m.Packages[pkg.PkgPath].Types[i] = api.BaseType(tn)
+			p.Types[variable.TypeDefinition.ID()] = variable.TypeDefinition
+		}
+		for id, constant := range p.Consts {
+			constant.TypeDefinition = api.RefId{
+				ImportPath: path,
+				Identifier: id,
 			}
+			p.Types[constant.TypeDefinition.ID()] = constant.TypeDefinition
+		}
+		for id, function := range p.Functions {
+			function.TypeDefinition = api.RefId{
+				ImportPath: path,
+				Identifier: id,
+			}
+			p.Types[function.TypeDefinition.ID()] = function.TypeDefinition
 		}
 	}
 }
@@ -85,6 +103,11 @@ func packageTypes(m *api.Module, lp *loadedPackages) {
 func addNameToSignature(fn types.Object) string {
 	sigString := strings.Replace(fn.Type().String(), fn.Pkg().Path(), fn.Pkg().Name(), -1)
 	params := fn.Type().(*types.Signature).Params()
+	if v, ok := fn.Type().(*types.Signature); ok {
+		v.Results()
+	} else {
+		panic(fmt.Errorf("implement me: %v", reflect.TypeOf(fn.Type())))
+	}
 	results := fn.Type().(*types.Signature).Results()
 	sigString = replaceParameterString(params, sigString)
 	sigString = replaceParameterString(results, sigString)
@@ -97,6 +120,7 @@ func replaceParameterString(params *types.Tuple, sigString string) string {
 		p := params.At(i)
 		origin := p.Origin().Type().String()
 		replacement := replacementString(origin)
+		replacement = addCrossRef(replacement)
 		sigString = strings.Replace(sigString, origin, replacement, -1)
 	}
 
@@ -114,4 +138,17 @@ func replacementString(origin string) string {
 	}
 
 	return strings.Replace(origin, origin[firstReplacementIndex:lastSlashIndex+1], "", -1)
+}
+
+func addCrossRef(s string) string {
+	if strings.Contains(s, ".") {
+		var firstIndex int
+		if strings.Contains(s, "*") {
+			firstIndex = strings.LastIndex(s, "*") + 1
+		}
+		lastDotIndex := strings.LastIndex(s, ".")
+		pName := s[firstIndex:lastDotIndex]
+		s = strings.Replace(s, pName, fmt.Sprintf("<<%s>>", pName), -1)
+	}
+	return s
 }

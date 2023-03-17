@@ -49,12 +49,13 @@ type Module struct {
 }
 
 type Package struct {
+	ID          RefId
 	Readme      string
 	Doc         string
 	Name        string
 	Imports     Imports
 	Stereotypes []Stereotype
-	Types       map[int]BaseType
+	Types       map[string]RefId
 	Consts      map[string]*Constant
 	Vars        map[string]*Variable
 	Functions   map[string]*Function
@@ -71,12 +72,12 @@ type Struct struct {
 }
 
 type Function struct {
-	ID         RefId
-	Name       string
-	Comment    string
-	Signature  string
-	Parameters map[string]*Parameter
-	Results    map[string]*Parameter
+	TypeDefinition RefId
+	Name           string
+	Comment        string
+	Signature      string
+	Parameters     map[string]*Parameter
+	Results        map[string]*Parameter
 }
 
 type Method struct {
