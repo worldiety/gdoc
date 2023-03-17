@@ -3,11 +3,10 @@ package api
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"sort"
 )
 
 type RefId struct {
-	ImportPath string
+	ImportPath ImportPath
 	Identifier string
 }
 
@@ -40,10 +39,6 @@ const (
 	StereotypeParameterResult = "result"
 )
 
-type Import string
-
-type Imports []Import
-
 type BaseType string
 
 type ImportPath = string
@@ -63,6 +58,7 @@ type Package struct {
 	Consts      map[string]*Constant
 	Vars        map[string]*Variable
 	Functions   map[string]*Function
+	Structs     map[string]*Struct
 }
 type Comment string
 type Struct struct {
@@ -121,11 +117,3 @@ type Example struct {
 	Value string
 }
 type Parameter Field
-
-func (p Imports) Len() int           { return len(p) }
-func (p Imports) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p Imports) Less(i, j int) bool { return p[i] < p[j] }
-
-func (p Imports) Sort() {
-	sort.Sort(p)
-}

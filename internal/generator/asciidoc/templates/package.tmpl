@@ -1,3 +1,7 @@
 {{ define "package" }}
 == Package {{ .Name }}
+{{ if .Readme }}
+== **__Readme__**
+{{ .Readme }}
+{{ end }}
 {{- end }}

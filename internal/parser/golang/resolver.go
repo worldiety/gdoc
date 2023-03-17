@@ -72,9 +72,6 @@ func fnSignatures(m *api.Module, lp *loadedPackages) {
 func packageTypes(m *api.Module, lp *loadedPackages) {
 	for _, pkg := range lp.pkgs {
 		for i, tn := range pkg.Types.Scope().Names() {
-			if m.Packages[pkg.PkgPath] == nil {
-				continue
-			}
 			if m.Packages[pkg.PkgPath].Types == nil {
 				m.Packages[pkg.PkgPath].Types = make(map[int]api.BaseType, 0)
 			}
