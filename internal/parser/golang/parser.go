@@ -2,11 +2,11 @@ package golang
 
 import (
 	"fmt"
+	"github.com/worldiety/gdoc/internal/api"
 	"go/ast"
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"godocgenerator/internal/api"
 	"golang.org/x/exp/slices"
 	"golang.org/x/tools/go/packages"
 	"io/fs"

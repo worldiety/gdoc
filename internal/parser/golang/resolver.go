@@ -2,8 +2,8 @@ package golang
 
 import (
 	"fmt"
+	"github.com/worldiety/gdoc/internal/api"
 	"go/types"
-	"godocgenerator/internal/api"
 	"golang.org/x/tools/go/packages"
 	"reflect"
 	"strings"

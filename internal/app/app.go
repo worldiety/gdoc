@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"godocgenerator/internal/api"
-	"godocgenerator/internal/generator/asciidoc"
-	"godocgenerator/internal/parser/golang"
+	"github.com/worldiety/gdoc/internal/api"
+	"github.com/worldiety/gdoc/internal/generator/asciidoc"
+	"github.com/worldiety/gdoc/internal/parser/golang"
 	"gopkg.in/yaml.v3"
 	"strings"
 )
