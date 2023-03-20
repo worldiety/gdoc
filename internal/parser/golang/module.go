@@ -113,7 +113,7 @@ func newPackage(pkg Package) *api.Package {
 }
 
 func newStruct(value *doc.Type) *api.Struct {
-	f := []*api.Field{}
+	var f []*api.Field
 
 	for _, spec := range value.Decl.Specs {
 		switch s := spec.(type) {

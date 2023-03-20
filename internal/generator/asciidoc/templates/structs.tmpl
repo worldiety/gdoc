@@ -5,7 +5,7 @@
     {{ if .Comment }}
 / / {{ .Comment }}
     {{ end }}
-struct {{ .Name }} {
+type {{ .Name }} struct {
 {{if .Fields}}
 {{ range .Fields }}
 {{ template "field" . }}

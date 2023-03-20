@@ -2,17 +2,12 @@
 {{- if . }}
 === Functions
 {{ range . }}
-{{- if .Signature }}
-* {{ .Signature }}
-{{ if .Parameters }}
-** Parameters
-{{ range .Parameters }}
-*** {{ .Name }} ({{ .SrcTypeDefinition }})
-{{- end -}}
-{{- end }}
 {{ if .Comment }}
-* Comment: {{ .Comment }}
+/ / Comment: {{ .Comment }}
 {{ end }}
+{{- if .Signature }}
+{{ .Signature }}
+
 .Code
 [%collapsible]
 ====
