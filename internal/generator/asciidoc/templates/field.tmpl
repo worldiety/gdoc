@@ -1,4 +1,4 @@
 {{ define "field" }}
-{{ if .Comment }}// {{ .Comment }}{{ end -}}
-{{ if .Name }}{{ .Name }} {{end}}{{ if .SrcTypeDefinition }}{{ .SrcTypeDefinition }}{{ end -}}
+{{ if .Comment }}[comment]#// {{ .Comment }}#{{ end -}}
+{{ if .Name }}[text]#{{ .Name }}# {{end}}{{ if .SrcTypeDefinition }}[type]#{{ .SrcTypeDefinition }}#{{ end -}}
 {{ end }}

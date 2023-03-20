@@ -2,16 +2,17 @@
 {{ if . }}
 === Structs
 {{ range . }}
-    {{ if .Comment }}
-/ / {{ .Comment }}
-    {{ end }}
-type {{ .Name }} struct {
-{{if .Fields}}
-{{ range .Fields }}
-{{ template "field" . }}
+[.code]
+****
+{{ if .Comment }}[comment]#//{{ .Comment }}#{{ end }}
+
+[keyword]#type# [string]#{{ .Name }}#
+[keyword]#struct# [operator]#{#
+{{- if .Fields }}{{ range .Fields }}
+{{ template "field" . }}{{ end }}
 {{ end }}
-{{ end }}
-}
+[operator]#}#
+****
 {{ end }}
 {{ end }}
 {{ end }}
