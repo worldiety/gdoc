@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 )
 
@@ -84,13 +83,4 @@ func ModulePath(dir string) (string, error) {
 	}
 
 	return modfile.ModulePath(buf), nil
-}
-
-func LastKey(m any) any {
-	v := reflect.ValueOf(m)
-	keys := v.MapKeys()
-	if len(keys) == 0 {
-		return nil
-	}
-	return keys[len(keys)-1].Interface()
 }
