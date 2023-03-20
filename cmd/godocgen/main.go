@@ -22,7 +22,7 @@ func main() {
 	}
 	switch cfg.OutputFormat {
 	case app.Adoc, app.Html, app.Pdf:
-		file, err := os.Create("test.adoc")
+		file, err := os.Create("doc.adoc")
 		if err != nil {
 			log.Printf("file could not be created\nerror: %e", err)
 		}
@@ -65,7 +65,6 @@ func RenderToHtml(adocFilename string) (string, error) {
 func RenderToPdf(adocFileName string) error {
 	// Use the asciidoctor-pdf library to generate a PDF from the adoc file
 	// get commands from commadn line and export errors to it
-	// TODO extract to func that can be used in html conversion as well.
 	cmd := exec.Command("asciidoctor-pdf", adocFileName)
 	setupCMD(cmd)
 

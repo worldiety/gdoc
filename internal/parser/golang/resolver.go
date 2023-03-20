@@ -120,7 +120,7 @@ func replaceParameterString(params *types.Tuple, sigString string) string {
 		p := params.At(i)
 		origin := p.Origin().Type().String()
 		replacement := replacementString(origin)
-		replacement = addCrossRef(replacement)
+		//replacement = addCrossRef(replacement)
 		sigString = strings.Replace(sigString, origin, replacement, -1)
 	}
 

@@ -1,12 +1,17 @@
 {{- define "structs" -}}
-{{ if .Structs }}
-{{ range .Structs }}
-* {{ .Name }}
-** {{ .Comment }}
-** Fields
+{{ if . }}
+=== Structs
+{{ range . }}
+    {{ if .Comment }}
+/ / {{ .Comment }}
+    {{ end }}
+struct {{ .Name }} {
+{{if .Fields}}
 {{ range .Fields }}
-{{ template "field" }}
+{{ template "field" . }}
 {{ end }}
+{{ end }}
+}
 {{ end }}
 {{ end }}
 {{ end }}

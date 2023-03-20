@@ -16,6 +16,7 @@ const (
 	functionsTemplate = "functions"
 	moduleTemplate    = "module"
 	packageTemplate   = "package"
+	structTemplate    = "structs"
 )
 
 // ExecuteTemplate uses a type switch to execute the correct template for all input items
@@ -46,6 +47,10 @@ func ExecuteTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 
 			return fmt.Errorf("unable to execute %s: %w", packageTemplate, err)
 		}
+	case map[string]*api.Struct:
+		if err := t.ExecuteTemplate(dest, structTemplate, items); err != nil {
+			return fmt.Errorf("unable to execute %s: %w", structTemplate, err)
+		}
 	default:
 		log.Fatalf("Type %v not supported", reflect.TypeOf(items))
 	}
@@ -67,7 +72,7 @@ func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{p.Consts, p.Vars, p.Functions}
+		data := []any{p.Consts, p.Vars, p.Functions, p.Structs}
 		for _, items := range data {
 			if err := ExecuteTemplate(Templates, items, &outPut); err != nil {
 

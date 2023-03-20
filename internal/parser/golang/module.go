@@ -101,7 +101,38 @@ func newPackage(pkg Package) *api.Package {
 		}
 	}
 
+	if len(pkg.dpkg.Types) > 0 {
+		p.Structs = map[string]*api.Struct{}
+		for _, value := range pkg.dpkg.Types {
+			p.Structs[value.Name] = newStruct(value)
+		}
+
+	}
+
 	return p
+}
+
+func newStruct(value *doc.Type) *api.Struct {
+	f := []*api.Field{}
+
+	for _, spec := range value.Decl.Specs {
+		switch s := spec.(type) {
+		case *ast.TypeSpec:
+			if structType, ok := s.Type.(*ast.StructType); ok {
+				for _, field := range structType.Fields.List {
+					f = append(f, newField(field))
+				}
+			}
+		}
+	}
+
+	s := &api.Struct{
+		Comment: api.Comment(value.Doc),
+		Name:    value.Name,
+		Fields:  f,
+	}
+
+	return s
 }
 
 func newType(typeDef *doc.Type) api.BaseType {
@@ -165,7 +196,12 @@ func insertParams(dst map[string]*api.Parameter, src []*ast.Field, st ...api.Ste
 }
 
 func newField(field *ast.Field) *api.Field {
+	var name string
+	if field.Names != nil && field.Names[0] != nil {
+		name = field.Names[0].Name
+	}
 	n := &api.Field{
+		Name:              name,
 		Comment:           field.Doc.Text(),
 		SrcTypeDefinition: ast2str(field.Type),
 		Stereotypes:       []api.Stereotype{api.StereotypeProperty},
