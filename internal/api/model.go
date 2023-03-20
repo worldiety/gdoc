@@ -1,8 +1,23 @@
 package api
 
-import "sort"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+)
 
-type RefId int
+type RefId struct {
+	ImportPath ImportPath
+	Identifier string
+}
+
+func (id RefId) ID() string {
+	tmp := sha256.Sum224([]byte(id.ImportPath + id.Identifier))
+	return hex.EncodeToString(tmp[:])
+}
+
+func (id RefId) Named() bool {
+	return id.Identifier == ""
+}
 
 // Stereotype as usually interpreted in found context but not expressed in language explicitly.
 type Stereotype string
@@ -24,10 +39,6 @@ const (
 	StereotypeParameterResult = "result"
 )
 
-type Import string
-
-type Imports []Import
-
 type BaseType string
 
 type ImportPath = string
@@ -38,15 +49,17 @@ type Module struct {
 }
 
 type Package struct {
+	ID          RefId
 	Readme      string
 	Doc         string
 	Name        string
 	Imports     Imports
 	Stereotypes []Stereotype
-	Types       map[int]BaseType
+	Types       map[string]RefId
 	Consts      map[string]*Constant
 	Vars        map[string]*Variable
 	Functions   map[string]*Function
+	Structs     map[string]*Struct
 }
 type Comment string
 type Struct struct {
@@ -59,11 +72,12 @@ type Struct struct {
 }
 
 type Function struct {
-	ID         RefId
-	Name       string
-	Comment    string
-	Parameters map[string]*Parameter
-	Results    map[string]*Parameter
+	TypeDefinition RefId
+	Name           string
+	Comment        string
+	Signature      string
+	Parameters     map[string]*Parameter
+	Results        map[string]*Parameter
 }
 
 type Method struct {
@@ -75,6 +89,11 @@ type Constructor struct {
 	ID         RefId
 	Comment    string
 	parameters []*Parameter
+}
+
+type Bla struct {
+	Yolo func(x int)
+	*Bla
 }
 type Field struct {
 	Name              string
@@ -99,11 +118,3 @@ type Example struct {
 	Value string
 }
 type Parameter Field
-
-func (p Imports) Len() int           { return len(p) }
-func (p Imports) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p Imports) Less(i, j int) bool { return p[i] < p[j] }
-
-func (p Imports) Sort() {
-	sort.Sort(p)
-}

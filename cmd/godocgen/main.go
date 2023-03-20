@@ -22,7 +22,7 @@ func main() {
 	}
 	switch cfg.OutputFormat {
 	case app.Adoc, app.Html, app.Pdf:
-		file, err := os.Create("test.adoc")
+		file, err := os.Create("doc.adoc")
 		if err != nil {
 			log.Printf("file could not be created\nerror: %e", err)
 		}
@@ -49,10 +49,12 @@ func main() {
 	}
 }
 
+// use asciidoc to render a html from the output buffer
 func RenderToHtml(adocFilename string) (string, error) {
 	htmlFileName := "htmlOutput.html"
 	// use asciidoctor to create a html file from the adoc file
 	cmd := exec.Command("asciidoctor", "-b", "html5", "-o", htmlFileName, adocFilename)
+	setupCMD(cmd)
 	err := cmd.Run()
 	if err != nil {
 		return "", err
@@ -62,15 +64,20 @@ func RenderToHtml(adocFilename string) (string, error) {
 
 func RenderToPdf(adocFileName string) error {
 	// Use the asciidoctor-pdf library to generate a PDF from the adoc file
+	// get commands from commadn line and export errors to it
 	cmd := exec.Command("asciidoctor-pdf", adocFileName)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
+	setupCMD(cmd)
 
 	err := cmd.Run()
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func setupCMD(cmd *exec.Cmd) {
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
 }

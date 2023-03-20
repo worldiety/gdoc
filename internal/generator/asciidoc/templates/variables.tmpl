@@ -2,8 +2,9 @@
 {{ if . }}
 === Variables
 {{ range . }}
-{{ .Name }} {{ if .SrcTypeDefinition }}({{ .SrcTypeDefinition }}){{ end -}}
-{{ if ne .Comment "" }}* Comment: {{ .Comment }}{{ end -}}
+{{ .Name }} {{ if .SrcTypeDefinition }}({{ .SrcTypeDefinition }}){{ end }}
+{{ if .Comment }}
+* Comment: {{ .Comment }}{{ end }}
 {{ end }}
 {{ end -}}
 {{ end }}
