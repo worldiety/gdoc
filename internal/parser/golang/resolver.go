@@ -10,8 +10,9 @@ import (
 )
 
 type loadedPackages struct {
-	pkgs  map[string]*packages.Package
-	fnMap map[string]*api.Function
+	pkgs      map[string]*packages.Package
+	fnMap     map[string]*api.Function
+	structMap map[string]*api.Struct
 }
 
 func newLoadedPackages() *loadedPackages {
@@ -32,7 +33,6 @@ func Resolve(m *api.Module) error {
 		}
 	}
 
-	fnSignatures(m, lp)
 	addRefIDs(m)
 
 	return nil
@@ -54,25 +54,9 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 	return nil
 }
 
-func fnSignatures(m *api.Module, lp *loadedPackages) {
-	for _, p := range m.Packages {
-		for _, fn := range p.Functions {
-			lp.fnMap[fn.Name] = fn
-		}
-	}
-
-	for _, pkg := range lp.pkgs {
-		for n, function := range lp.fnMap {
-			if fn := pkg.Types.Scope().Lookup(n); fn != nil {
-				function.Signature = addNameToSignature(fn)
-			}
-		}
-	}
-}
-
 func addRefIDs(m *api.Module) {
 	for path, p := range m.Packages {
-		p.ID = api.RefId{
+		p.PackageDefinition = api.RefId{
 			ImportPath: path,
 			Identifier: p.Name,
 		}
@@ -97,11 +81,25 @@ func addRefIDs(m *api.Module) {
 			}
 			p.Types[function.TypeDefinition.ID()] = function.TypeDefinition
 		}
+		for id, s := range p.Structs {
+			s.TypeDefinition = api.RefId{
+				ImportPath: path,
+				Identifier: id,
+			}
+
+			for _, f := range s.Fields {
+				f.TypeDefinition = api.RefId{
+					ImportPath: path,
+					Identifier: f.Name,
+				}
+				f.PackageDefinition = p.PackageDefinition
+			}
+		}
 	}
 }
 
 func addNameToSignature(fn types.Object) string {
-	sigString := strings.Replace(fn.Type().String(), fn.Pkg().Path(), fn.Pkg().Name(), -1)
+	sigString := strings.Replace(fn.Type().String(), fn.Pkg().Path(), fmt.Sprintf("<<%s, %s>>", fn.Pkg().Name(), fn.Pkg().Name()), -1)
 	params := fn.Type().(*types.Signature).Params()
 	if v, ok := fn.Type().(*types.Signature); ok {
 		v.Results()
@@ -120,7 +118,7 @@ func replaceParameterString(params *types.Tuple, sigString string) string {
 		p := params.At(i)
 		origin := p.Origin().Type().String()
 		replacement := replacementString(origin)
-		//replacement = addCrossRef(replacement)
+		replacement = addCrossRef(replacement)
 		sigString = strings.Replace(sigString, origin, replacement, -1)
 	}
 
@@ -148,7 +146,7 @@ func addCrossRef(s string) string {
 		}
 		lastDotIndex := strings.LastIndex(s, ".")
 		pName := s[firstIndex:lastDotIndex]
-		s = strings.Replace(s, pName, fmt.Sprintf("<<%s>>", pName), -1)
+		s = strings.Replace(s, pName, fmt.Sprintf("<<%s, %s>>", pName, pName), -1)
 	}
 	return s
 }

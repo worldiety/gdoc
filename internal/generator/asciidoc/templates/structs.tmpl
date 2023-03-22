@@ -5,7 +5,6 @@
 [.code]
 ****
 {{ if .Comment }}[comment]#//{{ .Comment }}#{{ end }}
-
 [keyword]#type# [string]#{{ .Name }}#
 [keyword]#struct# [operator]#{#
 {{- if .Fields }}{{ range .Fields }}

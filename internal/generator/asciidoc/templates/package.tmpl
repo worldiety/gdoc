@@ -1,7 +1,7 @@
 {{ define "package" }}
-== Package [#{{.Name}}]#{{ .Name }}#
+== Package {{ .AnchorID }}{{ .Name }}
 {{ if .Readme }}
-== **__Readme__**
+=== **__Readme__**
 {{ .Readme }}
 {{ end }}
 {{- end }}

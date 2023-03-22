@@ -16,7 +16,7 @@ func (id RefId) ID() string {
 }
 
 func (id RefId) Named() bool {
-	return id.Identifier == ""
+	return id.Identifier != ""
 }
 
 // Stereotype as usually interpreted in found context but not expressed in language explicitly.
@@ -39,8 +39,6 @@ const (
 	StereotypeParameterResult = "result"
 )
 
-type BaseType string
-
 type ImportPath = string
 type Module struct {
 	Readme   string
@@ -49,26 +47,24 @@ type Module struct {
 }
 
 type Package struct {
-	ID          RefId
-	Readme      string
-	Doc         string
-	Name        string
-	Imports     Imports
-	Stereotypes []Stereotype
-	Types       map[string]RefId
-	Consts      map[string]*Constant
-	Vars        map[string]*Variable
-	Functions   map[string]*Function
-	Structs     map[string]*Struct
+	PackageDefinition RefId
+	Readme            string
+	Doc               string
+	Name              string
+	Imports           Imports
+	Stereotypes       []Stereotype
+	Types             map[string]RefId
+	Consts            map[string]*Constant
+	Vars              map[string]*Variable
+	Functions         map[string]*Function
+	Structs           map[string]*Struct
 }
 type Comment string
 type Struct struct {
-	ID         RefId
-	Comment    Comment
-	Name       string
-	Fields     []*Field
-	Methods    []*Method
-	Interfaces []*Interface
+	TypeDefinition RefId
+	Comment        Comment
+	Name           string
+	Fields         []*Field
 }
 
 type Function struct {
@@ -80,41 +76,17 @@ type Function struct {
 	Results        map[string]*Parameter
 }
 
-type Method struct {
-	Function
-	Receiver *Struct
-}
-
-type Constructor struct {
-	ID         RefId
-	Comment    string
-	parameters []*Parameter
-}
-
-type Bla struct {
-	Yolo func(x int)
-	*Bla
-}
 type Field struct {
 	Name              string
 	Comment           string
 	TypeDefinition    RefId
+	PackageDefinition RefId
 	SrcTypeDefinition string
 	Stereotypes       []Stereotype
 }
 
-type Interface struct {
-	ID        RefId
-	Name      string
-	Comment   string
-	Methods   []*Method
-	Functions []*Function
-}
 type Constant Field
 type Variable Field
-type Enum Field
-type Example struct {
-	ID    RefId
-	Value string
-}
 type Parameter Field
+type Import string
+type Imports []Import

@@ -135,12 +135,6 @@ func newStruct(value *doc.Type) *api.Struct {
 	return s
 }
 
-func newType(typeDef *doc.Type) api.BaseType {
-	t := api.BaseType(typeDef.Name)
-
-	return t
-}
-
 func newFunc(docFunc *doc.Func) *api.Function {
 	f := &api.Function{
 		Name:    docFunc.Name,
