@@ -33,7 +33,7 @@ func Resolve(m *api.Module) error {
 		}
 	}
 
-	addRefIDs(m)
+	addRefIDs(m, lp)
 
 	return nil
 }
@@ -54,7 +54,7 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 	return nil
 }
 
-func addRefIDs(m *api.Module) {
+func addRefIDs(m *api.Module, lp *loadedPackages) {
 	for path, p := range m.Packages {
 		p.PackageDefinition = api.RefId{
 			ImportPath: path,
@@ -65,34 +65,44 @@ func addRefIDs(m *api.Module) {
 				ImportPath: path,
 				Identifier: id,
 			}
-			p.Types[variable.TypeDefinition.ID()] = variable.TypeDefinition
+			p.Types[variable.Name] = variable.TypeDefinition
 		}
 		for id, constant := range p.Consts {
 			constant.TypeDefinition = api.RefId{
 				ImportPath: path,
 				Identifier: id,
 			}
-			p.Types[constant.TypeDefinition.ID()] = constant.TypeDefinition
+			p.Types[constant.Name] = constant.TypeDefinition
 		}
 		for id, function := range p.Functions {
 			function.TypeDefinition = api.RefId{
 				ImportPath: path,
 				Identifier: id,
 			}
-			p.Types[function.TypeDefinition.ID()] = function.TypeDefinition
+			p.Types[function.Name] = function.TypeDefinition
 		}
 		for id, s := range p.Structs {
 			s.TypeDefinition = api.RefId{
 				ImportPath: path,
 				Identifier: id,
 			}
+			p.Types[s.Name] = s.TypeDefinition
 
 			for _, f := range s.Fields {
-				f.TypeDefinition = api.RefId{
-					ImportPath: path,
-					Identifier: f.Name,
+				var importPath string
+				var identifier string
+				if strings.Contains(f.SrcTypeDefinition, ".") {
+					parts := strings.Split(f.SrcTypeDefinition, ".")
+					importPath = lp.pkgs[strings.Replace(parts[0], "*", "", -1)].PkgPath
+					identifier = parts[1]
+				} else {
+					importPath = p.PackageDefinition.ImportPath
+					identifier = f.SrcTypeDefinition
 				}
-				f.PackageDefinition = p.PackageDefinition
+				f.TypeDefinition = api.RefId{
+					ImportPath: importPath,
+					Identifier: identifier,
+				}
 			}
 		}
 	}

@@ -104,7 +104,9 @@ func newPackage(pkg Package) *api.Package {
 	if len(pkg.dpkg.Types) > 0 {
 		p.Structs = map[string]*api.Struct{}
 		for _, value := range pkg.dpkg.Types {
-			p.Structs[value.Name] = newStruct(value)
+			if isExported(value.Name) {
+				p.Structs[value.Name] = newStruct(value)
+			}
 		}
 
 	}
@@ -114,25 +116,28 @@ func newPackage(pkg Package) *api.Package {
 
 func newStruct(value *doc.Type) *api.Struct {
 	var f []*api.Field
+	myStruct := &api.Struct{
+		Comment: api.Comment(strings.Trim(value.Doc, "\n")),
+		Name:    value.Name,
+	}
 
 	for _, spec := range value.Decl.Specs {
 		switch s := spec.(type) {
 		case *ast.TypeSpec:
 			if structType, ok := s.Type.(*ast.StructType); ok {
+
 				for _, field := range structType.Fields.List {
-					f = append(f, newField(field))
+					if isExported(field.Names[0].Name) {
+						f = append(f, newField(field, myStruct))
+					}
 				}
 			}
 		}
 	}
 
-	s := &api.Struct{
-		Comment: api.Comment(value.Doc),
-		Name:    value.Name,
-		Fields:  f,
-	}
+	myStruct.Fields = f
 
-	return s
+	return myStruct
 }
 
 func newFunc(docFunc *doc.Func) *api.Function {
@@ -163,7 +168,7 @@ func insertParams(dst map[string]*api.Parameter, src []*ast.Field, st ...api.Ste
 	c := 0
 	for fnum, field := range src {
 		if len(field.Names) == 0 {
-			in := newField(field)
+			in := newField(field, nil)
 			dst["__"+strconv.Itoa(fnum)] = &api.Parameter{
 				Comment:           in.Comment,
 				SrcTypeDefinition: in.SrcTypeDefinition,
@@ -174,7 +179,7 @@ func insertParams(dst map[string]*api.Parameter, src []*ast.Field, st ...api.Ste
 
 		for _, name := range field.Names {
 			c++
-			in := newField(field)
+			in := newField(field, nil)
 			myName := name.Name
 			if myName == "" {
 				myName = "__" + strconv.Itoa(c)
@@ -189,15 +194,19 @@ func insertParams(dst map[string]*api.Parameter, src []*ast.Field, st ...api.Ste
 	}
 }
 
-func newField(field *ast.Field) *api.Field {
+func newField(field *ast.Field, s *api.Struct) *api.Field {
 	var name string
 	if field.Names != nil && field.Names[0] != nil {
 		name = field.Names[0].Name
+		if s != nil && len([]rune(name)) > s.WhiteSpaceInFields {
+			s.WhiteSpaceInFields = len([]rune(name))
+		}
 	}
 	n := &api.Field{
 		Name:              name,
 		Comment:           field.Doc.Text(),
 		SrcTypeDefinition: ast2str(field.Type),
+		ParentStruct:      s,
 		Stereotypes:       []api.Stereotype{api.StereotypeProperty},
 	}
 
@@ -312,4 +321,11 @@ func ast2str(n ast.Node) string {
 	default:
 		panic(fmt.Errorf("implement me %T", t))
 	}
+}
+
+func isExported(s string) bool {
+	if s[0] >= 'A' && s[0] <= 'Z' {
+		return true
+	}
+	return false
 }

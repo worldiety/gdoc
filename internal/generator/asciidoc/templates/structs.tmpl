@@ -4,13 +4,13 @@
 {{ range . }}
 [.code]
 ****
-{{ if .Comment }}[comment]#//{{ .Comment }}#{{ end }}
-[keyword]#type# [string]#{{ .Name }}#
-[keyword]#struct# [operator]#{#
+{{ if .Comment }}{{.FormattedComment}}{{ end }}
+
+{{ .FormattedSigOpen }}
 {{- if .Fields }}{{ range .Fields }}
 {{ template "field" . }}{{ end }}
 {{ end }}
-[operator]#}#
+{{ .FormattedSigClose }}
 ****
 {{ end }}
 {{ end }}
