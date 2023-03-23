@@ -31,7 +31,7 @@ func Resolve(m *api.Module) error {
 		}
 	}
 
-	addRefIDs(m, lp)
+	addFieldInformation(m, lp)
 
 	return nil
 }
@@ -52,38 +52,24 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 	return nil
 }
 
-func addRefIDs(m *api.Module, lp *loadedPackages) {
+// add information to the module and all it's sub-parts that the ast package does not provide, but the packages.Package does
+func addFieldInformation(m *api.Module, lp *loadedPackages) {
 	for path, p := range m.Packages {
-		p.PackageDefinition = api.RefId{
-			ImportPath: path,
-			Identifier: p.Name,
-		}
+		p.PackageDefinition = api.NewRefID(path, p.Name)
 		for id, variable := range p.Vars {
-			variable.TypeDefinition = api.RefId{
-				ImportPath: path,
-				Identifier: id,
-			}
+			variable.TypeDefinition = api.NewRefID(path, id)
 			p.Types[variable.Name] = variable.TypeDefinition
 		}
 		for id, constant := range p.Consts {
-			constant.TypeDefinition = api.RefId{
-				ImportPath: path,
-				Identifier: id,
-			}
+			constant.TypeDefinition = api.NewRefID(path, id)
 			p.Types[constant.Name] = constant.TypeDefinition
 		}
 		for id, function := range p.Functions {
-			function.TypeDefinition = api.RefId{
-				ImportPath: path,
-				Identifier: id,
-			}
+			function.TypeDefinition = api.NewRefID(path, id)
 			p.Types[function.Name] = function.TypeDefinition
 		}
 		for id, s := range p.Structs {
-			s.TypeDefinition = api.RefId{
-				ImportPath: path,
-				Identifier: id,
-			}
+			s.TypeDefinition = api.NewRefID(path, id)
 			p.Types[s.Name] = s.TypeDefinition
 
 			for _, f := range s.Fields {
@@ -100,10 +86,7 @@ func addRefIDs(m *api.Module, lp *loadedPackages) {
 					identifier = f.SrcTypeDefinition
 				}
 
-				f.TypeDefinition = api.RefId{
-					ImportPath: importPath,
-					Identifier: identifier,
-				}
+				f.TypeDefinition = api.NewRefID(importPath, identifier)
 
 				if lp.pkgs[f.TypeDefinition.PackageName()] != nil && lp.pkgs[f.TypeDefinition.PackageName()].Types.Scope().
 					Lookup(strings.Replace(identifier, "*", "", -1)) != nil {

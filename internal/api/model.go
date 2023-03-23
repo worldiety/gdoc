@@ -12,6 +12,13 @@ type RefId struct {
 	Identifier string
 }
 
+func NewRefID(importPath, identifier string) RefId {
+	return RefId{
+		ImportPath: importPath,
+		Identifier: identifier,
+	}
+}
+
 func (id RefId) ID() string {
 	tmp := sha256.Sum224([]byte(id.ImportPath + id.Identifier))
 	return fmt.Sprintf("gd%s", hex.EncodeToString(tmp[:]))
