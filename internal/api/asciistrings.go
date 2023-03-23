@@ -43,7 +43,7 @@ func (f Field) WhiteSpaceBetween() string {
 			s += "{nbsp}" // nbsp element is necessary, " " would not be preserved
 		}
 	}
-	return s + " "
+	return s + " " // at the end a white space has to be added like this or any following formatting code like [code]#*#, will lose its effect
 }
 
 // FormattedType formats a fields' SrcTypeDefinition.
