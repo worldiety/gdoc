@@ -56,7 +56,7 @@ func (f Field) FormattedType() string {
 		if f.Link {
 			return fmt.Sprintf("<<%s, [type]#%s#>>.<<%s, [type]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
-				removeAsterisk(parts[0]), parts[0], f.TypeDefinition.ID(), parts[1])
+				removeAsterisks(parts[0]), parts[0], f.TypeDefinition.ID(), parts[1])
 		}
 		return fmt.Sprintf("[type]#%s#.[type]#%s#", parts[0], parts[1])
 	}
@@ -67,6 +67,6 @@ func (f Field) FormattedType() string {
 	return fmt.Sprintf("[type]#%s#", f.SrcTypeDefinition)
 }
 
-func removeAsterisk(s string) string {
-	return strings.Replace(s, "*", "", 1)
+func removeAsterisks(s string) string {
+	return strings.Replace(s, "*", "", -1)
 }
