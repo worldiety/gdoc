@@ -39,11 +39,11 @@ func (f Field) WhiteSpaceBetween() string {
 	var s string
 	if f.ParentStruct != nil {
 		n := f.ParentStruct.WhiteSpaceInFields - len([]rune(f.Name))
-		for i := 0; i <= n; i++ {
+		for i := 0; i < n; i++ {
 			s += "{nbsp}" // nbsp element is necessary, " " would not be preserved
 		}
 	}
-	return s
+	return s + " "
 }
 
 // FormattedType formats a fields' SrcTypeDefinition.
@@ -53,7 +53,7 @@ func (f Field) WhiteSpaceBetween() string {
 func (f Field) FormattedType() string {
 	if strings.Contains(f.SrcTypeDefinition, ".") {
 		parts := strings.Split(f.SrcTypeDefinition, ".")
-		if f.LinkPackage {
+		if f.Link {
 			return fmt.Sprintf("<<%s, [type]#%s#>>.<<%s, [type]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
 				removeAsterisk(parts[0]), parts[0], f.TypeDefinition.ID(), parts[1])

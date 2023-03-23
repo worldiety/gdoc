@@ -15,11 +15,11 @@ import (
 )
 
 type Package struct {
-	pkg          *ast.Package
-	dpkg         *doc.Package
-	ppkg         *packages.Package
-	TestPackages *api.Package
-	dir          string
+	pkg         *ast.Package
+	dpkg        *doc.Package
+	ppkg        *packages.Package
+	TestPackage *api.Package
+	dir         string
 }
 
 func Parse(dir string, onlyImports ...string) (*api.Module, error) {

@@ -3,9 +3,7 @@ package golang
 import (
 	"fmt"
 	"github.com/worldiety/gdoc/internal/api"
-	"go/types"
 	"golang.org/x/tools/go/packages"
-	"reflect"
 	"strings"
 )
 
@@ -93,70 +91,25 @@ func addRefIDs(m *api.Module, lp *loadedPackages) {
 				var identifier string
 				if strings.Contains(f.SrcTypeDefinition, ".") {
 					parts := strings.Split(f.SrcTypeDefinition, ".")
-					importPath = lp.pkgs[strings.Replace(parts[0], "*", "", -1)].PkgPath
-					identifier = parts[1]
-				} else {
-					importPath = p.PackageDefinition.ImportPath
+					if pack := lp.pkgs[strings.Replace(parts[0], "*", "", -1)]; pack != nil {
+						importPath = pack.PkgPath
+						identifier = parts[1]
+					}
+				} else if lp.pkgs[p.Name].Types.Scope().Lookup(f.SrcTypeDefinition) != nil {
+					importPath = lp.pkgs[p.Name].PkgPath
 					identifier = f.SrcTypeDefinition
 				}
+
 				f.TypeDefinition = api.RefId{
 					ImportPath: importPath,
 					Identifier: identifier,
 				}
+
+				if lp.pkgs[f.TypeDefinition.PackageName()] != nil && lp.pkgs[f.TypeDefinition.PackageName()].Types.Scope().
+					Lookup(strings.Replace(identifier, "*", "", -1)) != nil {
+					f.Link = true
+				}
 			}
 		}
 	}
-}
-
-func addNameToSignature(fn types.Object) string {
-	sigString := strings.Replace(fn.Type().String(), fn.Pkg().Path(), fmt.Sprintf("<<%s, %s>>", fn.Pkg().Name(), fn.Pkg().Name()), -1)
-	params := fn.Type().(*types.Signature).Params()
-	if v, ok := fn.Type().(*types.Signature); ok {
-		v.Results()
-	} else {
-		panic(fmt.Errorf("implement me: %v", reflect.TypeOf(fn.Type())))
-	}
-	results := fn.Type().(*types.Signature).Results()
-	sigString = replaceParameterString(params, sigString)
-	sigString = replaceParameterString(results, sigString)
-
-	return fmt.Sprintf("%s%s%s", sigString[:4], " "+fn.Name(), sigString[4:])
-}
-
-func replaceParameterString(params *types.Tuple, sigString string) string {
-	for i := 0; i < params.Len(); i++ {
-		p := params.At(i)
-		origin := p.Origin().Type().String()
-		replacement := replacementString(origin)
-		replacement = addCrossRef(replacement)
-		sigString = strings.Replace(sigString, origin, replacement, -1)
-	}
-
-	return sigString
-}
-
-func replacementString(origin string) string {
-	if !strings.Contains(origin, "/") {
-		return origin
-	}
-	lastSlashIndex := strings.LastIndex(origin, "/")
-	var firstReplacementIndex int
-	if strings.Contains(origin, "*") {
-		firstReplacementIndex = strings.LastIndex(origin, "*") + 1
-	}
-
-	return strings.Replace(origin, origin[firstReplacementIndex:lastSlashIndex+1], "", -1)
-}
-
-func addCrossRef(s string) string {
-	if strings.Contains(s, ".") {
-		var firstIndex int
-		if strings.Contains(s, "*") {
-			firstIndex = strings.LastIndex(s, "*") + 1
-		}
-		lastDotIndex := strings.LastIndex(s, ".")
-		pName := s[firstIndex:lastDotIndex]
-		s = strings.Replace(s, pName, fmt.Sprintf("<<%s, %s>>", pName, pName), -1)
-	}
-	return s
 }
