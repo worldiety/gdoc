@@ -89,6 +89,7 @@ type Field struct {
 	Name              string
 	Comment           string
 	ParentStruct      *Struct // the struct, this field is a property of
+	Link, LinkPackage bool
 	TypeDefinition    RefId
 	PackageDefinition RefId
 	SrcTypeDefinition string

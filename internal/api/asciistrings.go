@@ -34,7 +34,7 @@ func (f Field) FormattedName() string {
 	return fmt.Sprintf("[text]#%s#", f.Name)
 }
 
-// WhiteSpaceBetween adds non breaking spaces between a fields name and type, to correctly format code blocks in monospace font
+// WhiteSpaceBetween adds non-breaking spaces between a fields name and type, to correctly format code blocks in monospace font
 func (f Field) WhiteSpaceBetween() string {
 	var s string
 	if f.ParentStruct != nil {
@@ -53,12 +53,18 @@ func (f Field) WhiteSpaceBetween() string {
 func (f Field) FormattedType() string {
 	if strings.Contains(f.SrcTypeDefinition, ".") {
 		parts := strings.Split(f.SrcTypeDefinition, ".")
-		return fmt.Sprintf("<<%s, [type]#%s#>>.<<%s, [type]#%s#>>",
-			// remove the asterisk to find the linked id, it's still displayed in the doc
-			removeAsterisk(parts[0]), parts[0], f.TypeDefinition.ID(), parts[1])
+		if f.LinkPackage {
+			return fmt.Sprintf("<<%s, [type]#%s#>>.<<%s, [type]#%s#>>",
+				// remove the asterisk to find the linked id, it's still displayed in the doc
+				removeAsterisk(parts[0]), parts[0], f.TypeDefinition.ID(), parts[1])
+		}
+		return fmt.Sprintf("[type]#%s#.[type]#%s#", parts[0], parts[1])
 	}
 
-	return fmt.Sprintf("<<%s, [type]#%s#>>", f.TypeDefinition.ID(), f.SrcTypeDefinition)
+	if f.Link {
+		return fmt.Sprintf("<<%s, [type]#%s#>>", f.TypeDefinition.ID(), f.SrcTypeDefinition)
+	}
+	return fmt.Sprintf("[type]#%s#", f.SrcTypeDefinition)
 }
 
 func removeAsterisk(s string) string {
