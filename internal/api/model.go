@@ -68,16 +68,14 @@ type Package struct {
 	Imports           Imports
 	Stereotypes       []Stereotype
 	Types             map[string]RefId
-
-	Consts    map[string]*Constant
-	Vars      map[string]*Variable
-	Functions map[string]*Function
-	Structs   map[string]*Struct
+	Consts            map[string]*Constant
+	Vars              map[string]*Variable
+	Functions         map[string]*Function
+	Structs           map[string]*Struct
 }
-type Comment string
 type Struct struct {
 	TypeDefinition     RefId
-	Comment            Comment
+	Comment            string
 	Name               string
 	Fields             []*Field
 	WhiteSpaceInFields int

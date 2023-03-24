@@ -5,6 +5,28 @@ import (
 	"strings"
 )
 
+// syntax highlighting for asciidoc
+const (
+	keyword      = "keyword"
+	t3xt         = "text"
+	background   = "background"
+	builtin      = "builtin"
+	str1ng       = "string"
+	numb3r       = "number"
+	comment      = "comment"
+	functionDecl = "functionDecl"
+	functionCall = "functionCall"
+	variable     = "variable"
+	Const        = "constant"
+	operator     = "operator"
+	control      = "control"
+	preprocessor = "preprocessor"
+	other        = "other"
+	typ3         = "type"
+	nam3         = "name"
+	code         = "code"
+)
+
 func (m Module) AnchorID() string {
 	return fmt.Sprintf("[[%s]]", m.Name)
 }
@@ -14,24 +36,25 @@ func (p Package) AnchorID() string {
 }
 
 func (s Struct) FormattedComment() string {
-	return fmt.Sprintf("[comment]#//%s#", string(s.Comment))
+	return FormattedComment(s.Comment)
 }
 
 func (s Struct) FormattedSigOpen() string {
-	return fmt.Sprintf("[keyword]#type# [[%s]][string]#%s# [keyword]#struct# [operator]#{#", s.TypeDefinition.ID(), s.Name)
+	return fmt.Sprintf("[%s]#%s# [[%s]][%s]#%s# [%s]#struct# [%s]#{#",
+		keyword, typ3, s.TypeDefinition.ID(), str1ng, s.Name, keyword, operator)
 }
 
 func (s Struct) FormattedSigClose() string {
-	return fmt.Sprintf("[operator]#}#")
+	return fmt.Sprintf("[%s]#}#", operator)
 }
 
 func (f Field) FormattedComment() string {
 
-	return fmt.Sprintf("[comment]#// %s#", f.Comment)
+	return FormattedComment(f.Comment)
 }
 
 func (f Field) FormattedName() string {
-	return fmt.Sprintf("[text]#%s#", f.Name)
+	return fmt.Sprintf("[%s]#%s#", t3xt, f.Name)
 }
 
 // WhiteSpaceBetween adds non-breaking spaces between a fields name and type, to correctly format code blocks in monospace font
@@ -54,19 +77,70 @@ func (f Field) FormattedType() string {
 	if strings.Contains(f.SrcTypeDefinition, ".") {
 		parts := strings.Split(f.SrcTypeDefinition, ".")
 		if f.Link {
-			return fmt.Sprintf("<<%s, [type]#%s#>>.<<%s, [type]#%s#>>",
+			return fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
-				removeAsterisks(parts[0]), parts[0], f.TypeDefinition.ID(), parts[1])
+				removeAsterisks(parts[0]), typ3, parts[0], f.TypeDefinition.ID(), typ3, parts[1])
 		}
-		return fmt.Sprintf("[type]#%s#.[type]#%s#", parts[0], parts[1])
+		return fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1])
 	}
 
 	if f.Link {
-		return fmt.Sprintf("<<%s, [type]#%s#>>", f.TypeDefinition.ID(), f.SrcTypeDefinition)
+		return fmt.Sprintf("<<%s, [%s]#%s#>>", f.TypeDefinition.ID(), typ3, f.SrcTypeDefinition)
 	}
-	return fmt.Sprintf("[type]#%s#", f.SrcTypeDefinition)
+
+	return fmt.Sprintf("[%s]#%s#", typ3, f.SrcTypeDefinition)
+}
+
+func (fn Function) FormattedComment() string {
+	return fmt.Sprintf(FormattedComment(fn.Comment))
+}
+
+func (fn Function) FormattedSignature() string {
+
+	return fmt.Sprintf("[%s]#func# [%s]#%s# [%s]#(#%s [%s]#)# %s",
+		keyword, nam3, fn.Name, operator, fn.FormattedParameters(), operator, fn.FormattedResults())
+}
+
+func (fn Function) FormattedParameters() string {
+	var s string
+	var c int
+	for _, p := range fn.Parameters {
+		s += fmt.Sprintf(" [%s]#%s# [%s]#%s#", variable, p.Name, typ3, p.SrcTypeDefinition)
+		if c < len(fn.Parameters)-1 {
+			s = addComma(s)
+		}
+		c++
+	}
+	return s
+}
+
+func (fn Function) FormattedResults() string {
+	var results string
+	var s string
+	var c int
+	for _, r := range fn.Results {
+		results += fmt.Sprintf(" [%s]#%s#", variable, r.SrcTypeDefinition)
+		if c < len(fn.Results)-1 {
+			results = addComma(results)
+		}
+		c++
+	}
+	if len(fn.Results) > 1 {
+		s = fmt.Sprintf("[%s]#(#%s [%s]#)#", operator, results, operator)
+	}
+
+	return s
+}
+
+func addComma(s string) string {
+	return fmt.Sprintf("%s [%s]#,# ", s, operator)
 }
 
 func removeAsterisks(s string) string {
 	return strings.Replace(s, "*", "", -1)
+}
+
+func FormattedComment(s string) string {
+	s = strings.Trim(s, "\n")
+	return fmt.Sprintf("[%s]#// %s#", comment, s)
 }

@@ -33,7 +33,7 @@ func main() {
 		}
 
 		if cfg.OutputFormat == app.Html {
-			_, err = RenderToHtml(file.Name())
+			err = RenderToHtml(file.Name())
 			if err != nil {
 				log.Printf("file could not be created\nerror: %e", err)
 			}
@@ -49,22 +49,23 @@ func main() {
 	}
 }
 
-// use asciidoc to render a html from the output buffer
-func RenderToHtml(adocFilename string) (string, error) {
+// RenderToHtml loads the file in the given path and uses the asciidoc cli tool to render and save a html file
+func RenderToHtml(adocFilename string) error {
 	htmlFileName := "htmlOutput.html"
 	// use asciidoctor to create a html file from the adoc file
 	cmd := exec.Command("asciidoctor", "-b", "html5", "-o", htmlFileName, adocFilename)
 	setupCMD(cmd)
 	err := cmd.Run()
 	if err != nil {
-		return "", err
+		return err
 	}
-	return htmlFileName, nil
+	return nil
 }
 
+// RenderToPdf takes a filename of an adoc file and uses asciidoc-pdf to render and save a pdf file
 func RenderToPdf(adocFileName string) error {
 	// Use the asciidoctor-pdf library to generate a PDF from the adoc file
-	// get commands from commadn line and export errors to it
+	// get commands from command line and export errors to it
 	cmd := exec.Command("asciidoctor-pdf", adocFileName)
 	setupCMD(cmd)
 

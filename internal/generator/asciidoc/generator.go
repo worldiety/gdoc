@@ -72,7 +72,7 @@ func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{p.Structs /*, p.Vars, p.Consts, p.Functions*/}
+		data := []any{p.Structs /*, p.Vars, p.Consts*/, p.Functions}
 		for _, items := range data {
 			if err := ExecuteTemplate(Templates, items, &outPut); err != nil {
 

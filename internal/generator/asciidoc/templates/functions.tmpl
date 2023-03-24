@@ -2,24 +2,13 @@
 {{- if . }}
 === Functions
 {{ range . }}
+[.code]
+****
 {{ if .Comment }}
-/ / Comment: {{ .Comment }}
+{{ .FormattedComment }}
 {{ end }}
-{{- if .Signature }}
-{{ .Signature }}
-
-.Code
-[%collapsible]
-====
-[source,go]
-----
-{{ if .Comment }}
-// {{ .Comment }}
-{{- end }}
-{{- .Signature }}
-----
-====
-{{- end }}
-{{ end }}
+{{ .FormattedSignature }}
+****
 {{ end -}}
+{{ end }}
 {{ end }}

@@ -117,7 +117,7 @@ func newPackage(pkg Package) *api.Package {
 func newStruct(value *doc.Type) *api.Struct {
 	var f []*api.Field
 	myStruct := &api.Struct{
-		Comment: api.Comment(strings.Trim(value.Doc, "\n")),
+		Comment: strings.Trim(value.Doc, "\n"),
 		Name:    value.Name,
 	}
 
