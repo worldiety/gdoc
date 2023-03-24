@@ -37,10 +37,8 @@ func Resolve(m *api.Module) error {
 }
 
 func (lp *loadedPackages) loadPackages(dir string) error {
-	pkgs, err := packages.Load(&packages.Config{
-		Mode:  packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles | packages.NeedImports | packages.NeedDeps | packages.NeedExportFile | packages.NeedTypes | packages.NeedTypesInfo | packages.NeedTypesSizes | packages.NeedModule | packages.NeedEmbedFiles | packages.NeedEmbedPatterns,
-		Tests: false,
-	}, dir)
+	pkgs, err := packages.Load(
+		&packages.Config{Mode: packages.NeedName | packages.NeedTypes | packages.NeedModule, Tests: false}, dir)
 	if err != nil {
 		return fmt.Errorf("could not load packages from %s: %w", dir, err)
 	}
@@ -55,6 +53,9 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 // add information to the module and all it's sub-parts that the ast package does not provide, but the packages.Package does
 func addFieldInformation(m *api.Module, lp *loadedPackages) {
 	for path, p := range m.Packages {
+		if p.Name != "app" {
+			continue
+		}
 		p.PackageDefinition = api.NewRefID(path, p.Name)
 		for id, variable := range p.Vars {
 			variable.TypeDefinition = api.NewRefID(path, id)
@@ -88,11 +89,16 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 
 				f.TypeDefinition = api.NewRefID(importPath, identifier)
 
-				if lp.pkgs[f.TypeDefinition.PackageName()] != nil && lp.pkgs[f.TypeDefinition.PackageName()].Types.Scope().
-					Lookup(strings.Replace(identifier, "*", "", -1)) != nil {
-					f.Link = true
-				}
+				// if the Field f is of a type from a package, contained in the project, it should be linked, otherwise it should not.
+				linkType(f, lp)
 			}
 		}
+	}
+}
+
+func linkType(f *api.Field, lp *loadedPackages) {
+	if lp.pkgs[f.TypeDefinition.PackageName()] != nil && lp.pkgs[f.TypeDefinition.PackageName()].Types.Scope().
+		Lookup(strings.Replace(f.TypeDefinition.Identifier, "*", "", -1)) != nil {
+		f.Link = true
 	}
 }
