@@ -73,86 +73,124 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 			for _, f := range s.Fields {
 				var importPath string
 				var identifier string
-				if strings.Contains(f.SrcTypeDefinition, ".") {
-					importPath, identifier = fromOtherPackage(f, lp)
-				} else if strings.Contains(f.SrcTypeDefinition, "") {
-				} else if lp.pkgs[p.Name].Types.Scope().Lookup(withoutAsterix(f.SrcTypeDefinition)) != nil {
-					importPath = lp.pkgs[p.Name].PkgPath
-					identifier = withoutAsterix(f.SrcTypeDefinition)
+				if strings.Contains(f.SrcTypeDefinition, "map[") {
+					handleMapType(f, p.Name, lp)
+				} else {
+					importPath, identifier, f.Link = typeDescInfo(p.Name, f.SrcTypeDefinition, lp)
 				}
 
 				f.TypeDefinition = api.NewRefID(importPath, identifier)
 
-				// if the Field f is of a type from a package, contained in the project, it should be linked, otherwise it should not.
-				linkType(f, lp)
+				//// if the Field f is of a type from a package, contained in the project, it should be linked, otherwise it should not.
+				//linkType(f, lp)
 			}
 		}
 	}
 }
 
-func linkType(f *api.Field, lp *loadedPackages) {
-
-	if strings.Contains(f.SrcTypeDefinition, "map[") {
-		f.Link = handleMapLinks(f, lp)
-	}
-	if strings.Contains(f.SrcTypeDefinition, "[]") {
-		f.Link = handleArrayLink(f, lp)
-	}
-	if lp.pkgs[f.TypeDefinition.PackageName()] == nil {
-		f.Link = api.None
-	} else {
-		f.Link = handleField(f.TypeDefinition.PackageName(), f.TypeDefinition.Identifier, *lp)
-	}
-}
-
-func handleField(pName, fId string, lp loadedPackages) api.Link {
-	if lp.pkgs[pName].Types.Scope().
-		Lookup(withoutAsterix(fId)) != nil {
-		return api.FieldType
-	}
-	return api.None
-}
-
-func handleArrayLink(f *api.Field, lp *loadedPackages) api.Link {
-	var link api.Link
-	return link
-}
-
-func handleMapLinks(f *api.Field, lp *loadedPackages) api.Link {
-	var keyType, valueType string
-	pName := f.TypeDefinition.PackageName()
-	tmp := strings.Replace(withoutAsterix(f.SrcTypeDefinition), "map[", "", 1)
+func handleMapType(f *api.Field, pName string, lp *loadedPackages) {
+	var keyTypeDef, valueTypeDef string
+	tmp := strings.Replace(f.SrcTypeDefinition, "map[", "", 1)
 	tmpArr := strings.Split(tmp, "]")
-	keyType = tmpArr[0]
-	valueType = tmpArr[1]
+	keyTypeDef = tmpArr[0]
+	valueTypeDef = tmpArr[1]
 
-	if handleField(pName, keyType, *lp) == api.None && handleField(pName, valueType, *lp) == api.None {
-		return api.None
+	var importPath, identifier string
+	var link bool
+	importPath, identifier, link = typeDescInfo(pName, keyTypeDef, lp)
+	f.MapType = &api.MapType{}
+	f.MapType.KeyType = &api.TypeDesc{
+		TypeDefinition:    api.NewRefID(importPath, identifier),
+		SrcTypeDefinition: keyTypeDef,
+		Link:              link,
 	}
-	if handleField(pName, keyType, *lp) == api.FieldType && handleField(pName, valueType, *lp) == api.None {
-		return api.MapKey
+
+	importPath, identifier, link = typeDescInfo(pName, valueTypeDef, lp)
+	f.MapType.ValueType = &api.TypeDesc{
+		TypeDefinition:    api.NewRefID(importPath, identifier),
+		SrcTypeDefinition: valueTypeDef,
+		Link:              link,
 	}
-	if handleField(pName, keyType, *lp) == api.None && handleField(pName, valueType, *lp) == api.FieldType {
-		return api.MapValue
-	}
-	if handleField(pName, keyType, *lp) == api.FieldType && handleField(pName, valueType, *lp) == api.FieldType {
-		return api.MapAll
-	}
-	return api.None
 }
+
+//func linkType(f *api.Field, lp *loadedPackages) {
+//
+//	if strings.Contains(f.SrcTypeDefinition, "map[") {
+//		f.Link = handleMapLinks(f, lp)
+//	}
+//	if strings.Contains(f.SrcTypeDefinition, "[]") {
+//		f.Link = handleArrayLink(f, lp)
+//	}
+//	if lp.pkgs[f.TypeDefinition.PackageName()] == nil {
+//		f.Link = false
+//	} else {
+//		f.Link = handleField(f.TypeDefinition.PackageName(), f.TypeDefinition.Identifier, *lp)
+//	}
+//}
+//
+//func handleField(pName, fId string, lp loadedPackages) api.Link {
+//	if lp.pkgs[pName].Types.Scope().
+//		Lookup(withoutAsterix(fId)) != nil {
+//		return api.FieldType
+//	}
+//	return api.None
+//}
+//
+//func handleArrayLink(f *api.Field, lp *loadedPackages) api.Link {
+//	var link api.Link
+//	return link
+//}
+//
+//func handleMapLinks(f *api.Field, lp *loadedPackages) api.Link {
+//	var keyType, valueType string
+//	pName := f.TypeDefinition.PackageName()
+//	tmp := strings.Replace(withoutAsterix(f.SrcTypeDefinition), "map[", "", 1)
+//	tmpArr := strings.Split(tmp, "]")
+//	keyType = tmpArr[0]
+//	valueType = tmpArr[1]
+//
+//	if handleField(pName, keyType, *lp) == api.None && handleField(pName, valueType, *lp) == api.None {
+//		return api.None
+//	}
+//	if handleField(pName, keyType, *lp) == api.FieldType && handleField(pName, valueType, *lp) == api.None {
+//		return api.MapKey
+//	}
+//	if handleField(pName, keyType, *lp) == api.None && handleField(pName, valueType, *lp) == api.FieldType {
+//		return api.MapValue
+//	}
+//	if handleField(pName, keyType, *lp) == api.FieldType && handleField(pName, valueType, *lp) == api.FieldType {
+//		return api.MapAll
+//	}
+//	return api.None
+//}
 
 func withoutAsterix(s string) string {
 	return strings.Replace(s, "*", "", -1)
 }
 
-func fromOtherPackage(f *api.Field, lp *loadedPackages) (string, string) {
+func typeDescInfo(pName, srcDef string, lp *loadedPackages) (string, string, bool) {
 	var importPath, identifier string
-	parts := strings.Split(f.SrcTypeDefinition, ".")
-	if pack := lp.pkgs[strings.Replace(parts[0], "*", "", -1)]; pack != nil {
-		importPath = pack.PkgPath
-		identifier = parts[1]
+	var link bool
+	// from current package
+	if !strings.Contains(srcDef, ".") {
+		if p := lp.pkgs[pName]; p != nil {
+			if p.Types.Scope().Lookup(withoutAsterix(srcDef)) != nil {
+				importPath = p.PkgPath
+				link = true
+			}
+		}
+		identifier = withoutAsterix(srcDef)
+		return importPath, identifier, link
 	}
-	return importPath, identifier
+
+	// from other package
+	parts := strings.Split(srcDef, ".")
+	if p := lp.pkgs[strings.Replace(parts[0], "*", "", -1)]; p != nil {
+		importPath = p.PkgPath
+		identifier = parts[1]
+		link = true
+	}
+	return importPath, identifier, link
 }
 
 func array(f *api.Field, lp *loadedPackages) (string, string) {

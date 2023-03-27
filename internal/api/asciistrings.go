@@ -74,21 +74,38 @@ func (f Field) WhiteSpaceBetween() string {
 // 1. to the package, if the origin package is not the current one (optional). Packages use their names as ID.
 // 2. to the fields' type. Fields have a prefixed Hex encoded id embedded in the asciidoc.
 func (f Field) FormattedType() string {
-	if strings.Contains(f.SrcTypeDefinition, ".") {
-		parts := strings.Split(f.SrcTypeDefinition, ".")
-		if f.Link {
+	return formatType(f.SrcTypeDefinition, f.TypeDefinition.ID(), f.Link)
+}
+
+func (f Field) FormattedMapType() string {
+	srcTypeDef := f.SrcTypeDefinition
+	keyType := f.MapType.KeyType
+	valueType := f.MapType.ValueType
+	formattedKeySrcTypeDef := formatType(keyType.SrcTypeDefinition, keyType.TypeDefinition.ID(), keyType.Link)
+	formattedValueSrcTypeDef := formatType(valueType.SrcTypeDefinition, valueType.TypeDefinition.ID(), valueType.Link)
+
+	srcTypeDef = strings.Replace(srcTypeDef, keyType.SrcTypeDefinition, formattedKeySrcTypeDef, 1)
+	srcTypeDef = strings.Replace(srcTypeDef, valueType.SrcTypeDefinition, formattedValueSrcTypeDef, 1)
+
+	return srcTypeDef
+}
+
+func formatType(srcTypeDef, refId string, link bool) string {
+	if strings.Contains(srcTypeDef, ".") {
+		parts := strings.Split(srcTypeDef, ".")
+		if link {
 			return fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
-				removeAsterisks(parts[0]), typ3, parts[0], f.TypeDefinition.ID(), typ3, parts[1])
+				removeAsterisks(parts[0]), typ3, parts[0], refId, typ3, parts[1])
 		}
 		return fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1])
 	}
 
-	if f.Link {
-		return fmt.Sprintf("<<%s, [%s]#%s#>>", f.TypeDefinition.ID(), typ3, f.SrcTypeDefinition)
+	if link {
+		return fmt.Sprintf("<<%s, [%s]#%s#>>", refId, typ3, srcTypeDef)
 	}
 
-	return fmt.Sprintf("[%s]#%s#", typ3, f.SrcTypeDefinition)
+	return fmt.Sprintf("[%s]#%s#", typ3, srcTypeDef)
 }
 
 func (fn Function) FormattedComment() string {

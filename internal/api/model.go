@@ -7,17 +7,6 @@ import (
 	"strings"
 )
 
-type Link int
-
-const (
-	None Link = iota
-	MapKey
-	MapValue
-	MapAll
-	ArrayType
-	FieldType
-)
-
 type RefId struct {
 	ImportPath ImportPath
 	Identifier string
@@ -106,20 +95,20 @@ type Field struct {
 	Comment           string
 	ParentStruct      *Struct // the struct, this field is a property of
 	MapType           *MapType
-	Link              Link
+	Link              bool
 	TypeDefinition    RefId
 	SrcTypeDefinition string
 	Stereotypes       []Stereotype
 }
 
 type MapType struct {
-	KeyType, ValueType TypeDesc
+	KeyType, ValueType *TypeDesc
 }
 
 type TypeDesc struct {
 	TypeDefinition    RefId
 	SrcTypeDefinition string
-	Link              Link
+	Link              bool
 }
 
 type Constant Field
