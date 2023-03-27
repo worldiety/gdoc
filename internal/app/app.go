@@ -37,7 +37,6 @@ type Config struct {
 	OutputFormat string
 	Packages     string
 	PkgSep       string
-	TestVar      api.Function
 }
 
 func (c *Config) Reset() {
