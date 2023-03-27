@@ -74,11 +74,8 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 				var importPath string
 				var identifier string
 				if strings.Contains(f.SrcTypeDefinition, ".") {
-					parts := strings.Split(f.SrcTypeDefinition, ".")
-					if pack := lp.pkgs[strings.Replace(parts[0], "*", "", -1)]; pack != nil {
-						importPath = pack.PkgPath
-						identifier = parts[1]
-					}
+					importPath, identifier = fromOtherPackage(f, lp)
+				} else if strings.Contains(f.SrcTypeDefinition, "") {
 				} else if lp.pkgs[p.Name].Types.Scope().Lookup(withoutAsterix(f.SrcTypeDefinition)) != nil {
 					importPath = lp.pkgs[p.Name].PkgPath
 					identifier = withoutAsterix(f.SrcTypeDefinition)
@@ -94,12 +91,71 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 }
 
 func linkType(f *api.Field, lp *loadedPackages) {
-	if lp.pkgs[f.TypeDefinition.PackageName()] != nil && lp.pkgs[f.TypeDefinition.PackageName()].Types.Scope().
-		Lookup(withoutAsterix(f.TypeDefinition.Identifier)) != nil {
-		f.Link = true
+
+	if strings.Contains(f.SrcTypeDefinition, "map[") {
+		f.Link = handleMapLinks(f, lp)
 	}
+	if strings.Contains(f.SrcTypeDefinition, "[]") {
+		f.Link = handleArrayLink(f, lp)
+	}
+	if lp.pkgs[f.TypeDefinition.PackageName()] == nil {
+		f.Link = api.None
+	} else {
+		f.Link = handleField(f.TypeDefinition.PackageName(), f.TypeDefinition.Identifier, *lp)
+	}
+}
+
+func handleField(pName, fId string, lp loadedPackages) api.Link {
+	if lp.pkgs[pName].Types.Scope().
+		Lookup(withoutAsterix(fId)) != nil {
+		return api.FieldType
+	}
+	return api.None
+}
+
+func handleArrayLink(f *api.Field, lp *loadedPackages) api.Link {
+	var link api.Link
+	return link
+}
+
+func handleMapLinks(f *api.Field, lp *loadedPackages) api.Link {
+	var keyType, valueType string
+	pName := f.TypeDefinition.PackageName()
+	tmp := strings.Replace(withoutAsterix(f.SrcTypeDefinition), "map[", "", 1)
+	tmpArr := strings.Split(tmp, "]")
+	keyType = tmpArr[0]
+	valueType = tmpArr[1]
+
+	if handleField(pName, keyType, *lp) == api.None && handleField(pName, valueType, *lp) == api.None {
+		return api.None
+	}
+	if handleField(pName, keyType, *lp) == api.FieldType && handleField(pName, valueType, *lp) == api.None {
+		return api.MapKey
+	}
+	if handleField(pName, keyType, *lp) == api.None && handleField(pName, valueType, *lp) == api.FieldType {
+		return api.MapValue
+	}
+	if handleField(pName, keyType, *lp) == api.FieldType && handleField(pName, valueType, *lp) == api.FieldType {
+		return api.MapAll
+	}
+	return api.None
 }
 
 func withoutAsterix(s string) string {
 	return strings.Replace(s, "*", "", -1)
+}
+
+func fromOtherPackage(f *api.Field, lp *loadedPackages) (string, string) {
+	var importPath, identifier string
+	parts := strings.Split(f.SrcTypeDefinition, ".")
+	if pack := lp.pkgs[strings.Replace(parts[0], "*", "", -1)]; pack != nil {
+		importPath = pack.PkgPath
+		identifier = parts[1]
+	}
+	return importPath, identifier
+}
+
+func array(f *api.Field, lp *loadedPackages) (string, string) {
+	var importPath, identifier string
+	return importPath, identifier
 }
