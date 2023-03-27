@@ -40,12 +40,12 @@ func (s Struct) FormattedComment() string {
 }
 
 func (s Struct) FormattedSigOpen() string {
-	return fmt.Sprintf("[%s]#%s# [[%s]][%s]#%s# [%s]#struct# [%s]#{#",
-		keyword, typ3, s.TypeDefinition.ID(), str1ng, s.Name, keyword, operator)
+	return fmt.Sprintf("[%s]#%s# [[%s]][%s]#%s# [%s]#struct# %s",
+		keyword, typ3, s.TypeDefinition.ID(), str1ng, s.Name, keyword, operatorFormat("{"))
 }
 
 func (s Struct) FormattedSigClose() string {
-	return fmt.Sprintf("[%s]#}#", operator)
+	return fmt.Sprintf("%s", operatorFormat("}"))
 }
 
 func (f Field) FormattedComment() string {
@@ -86,26 +86,48 @@ func (f Field) FormattedMapType() string {
 
 	srcTypeDef = strings.Replace(srcTypeDef, keyType.SrcTypeDefinition, formattedKeySrcTypeDef, 1)
 	srcTypeDef = strings.Replace(srcTypeDef, valueType.SrcTypeDefinition, formattedValueSrcTypeDef, 1)
+	srcTypeDef = strings.Replace(srcTypeDef, "map", fmt.Sprintf("[%s]"+"#map#", keyword), 1)
 
 	return srcTypeDef
 }
 
 func formatType(srcTypeDef, refId string, link bool) string {
+	var result string
+	asterisk := strings.Contains(srcTypeDef, "*")
+	arrayType := strings.Contains(srcTypeDef, "[]")
+	if arrayType {
+		srcTypeDef = strings.Replace(srcTypeDef, "[]", "", -1)
+	}
+	if asterisk {
+		srcTypeDef = strings.Replace(srcTypeDef, "*", "", -1)
+	}
 	if strings.Contains(srcTypeDef, ".") {
 		parts := strings.Split(srcTypeDef, ".")
 		if link {
-			return fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
+			result = fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
 				removeAsterisks(parts[0]), typ3, parts[0], refId, typ3, parts[1])
+			return restoreArrayAndAsterisk(result, arrayType, asterisk)
 		}
-		return fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1])
+		return restoreArrayAndAsterisk(fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1]), arrayType, asterisk)
 	}
 
 	if link {
-		return fmt.Sprintf("<<%s, [%s]#%s#>>", refId, typ3, srcTypeDef)
+		return restoreArrayAndAsterisk(fmt.Sprintf("<<%s, [%s]#%s#>>", refId, typ3, srcTypeDef), arrayType, asterisk)
 	}
 
-	return fmt.Sprintf("[%s]#%s#", typ3, srcTypeDef)
+	return restoreArrayAndAsterisk(fmt.Sprintf("[%s]#%s#", typ3, srcTypeDef), arrayType, asterisk)
+}
+
+func restoreArrayAndAsterisk(result string, arrayType bool, asterisk bool) string {
+	if arrayType {
+		result = fmt.Sprintf("[]%s", result)
+	}
+	if asterisk {
+		result = fmt.Sprintf("*%s", result)
+	}
+
+	return result
 }
 
 func (fn Function) FormattedComment() string {
@@ -114,15 +136,15 @@ func (fn Function) FormattedComment() string {
 
 func (fn Function) FormattedSignature() string {
 
-	return fmt.Sprintf("[%s]#func# [%s]#%s# [%s]#(#%s [%s]#)# %s",
-		keyword, nam3, fn.Name, operator, fn.FormattedParameters(), operator, fn.FormattedResults())
+	return fmt.Sprintf("[%s]#func# [%s]#%s#(%s) %s",
+		keyword, nam3, fn.Name, fn.FormattedParameters(), fn.FormattedResults())
 }
 
 func (fn Function) FormattedParameters() string {
 	var s string
 	var c int
 	for _, p := range fn.Parameters {
-		s += fmt.Sprintf(" [%s]#%s# [%s]#%s#", variable, p.Name, typ3, p.SrcTypeDefinition)
+		s += fmt.Sprintf("[%s]#%s# [%s]#%s#", variable, p.Name, typ3, p.SrcTypeDefinition)
 		if c < len(fn.Parameters)-1 {
 			s = addComma(s)
 		}
@@ -136,21 +158,21 @@ func (fn Function) FormattedResults() string {
 	var s string
 	var c int
 	for _, r := range fn.Results {
-		results += fmt.Sprintf(" [%s]#%s#", variable, r.SrcTypeDefinition)
+		results += fmt.Sprintf("[%s]#%s#", variable, r.SrcTypeDefinition)
 		if c < len(fn.Results)-1 {
 			results = addComma(results)
 		}
 		c++
 	}
 	if len(fn.Results) > 1 {
-		s = fmt.Sprintf("[%s]#(#%s [%s]#)#", operator, results, operator)
+		s = fmt.Sprintf("(%s)", results)
 	}
 
 	return s
 }
 
 func addComma(s string) string {
-	return fmt.Sprintf("%s [%s]#,# ", s, operator)
+	return fmt.Sprintf("%s, ", s)
 }
 
 func removeAsterisks(s string) string {
@@ -160,4 +182,8 @@ func removeAsterisks(s string) string {
 func FormattedComment(s string) string {
 	s = strings.Trim(s, "\n")
 	return fmt.Sprintf("[%s]#// %s#", comment, s)
+}
+
+func operatorFormat(s string) string {
+	return fmt.Sprintf("[%s]#%s# ", operator, s)
 }
