@@ -53,9 +53,6 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 // add information to the module and all it's sub-parts that the ast package does not provide, but the packages.Package does
 func addFieldInformation(m *api.Module, lp *loadedPackages) {
 	for path, p := range m.Packages {
-		if p.Name != "app" {
-			continue
-		}
 		p.PackageDefinition = api.NewRefID(path, p.Name)
 		for id, variable := range p.Vars {
 			variable.TypeDefinition = api.NewRefID(path, id)
@@ -82,9 +79,9 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 						importPath = pack.PkgPath
 						identifier = parts[1]
 					}
-				} else if lp.pkgs[p.Name].Types.Scope().Lookup(f.SrcTypeDefinition) != nil {
+				} else if lp.pkgs[p.Name].Types.Scope().Lookup(withoutAsterix(f.SrcTypeDefinition)) != nil {
 					importPath = lp.pkgs[p.Name].PkgPath
-					identifier = f.SrcTypeDefinition
+					identifier = withoutAsterix(f.SrcTypeDefinition)
 				}
 
 				f.TypeDefinition = api.NewRefID(importPath, identifier)
@@ -98,7 +95,11 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 
 func linkType(f *api.Field, lp *loadedPackages) {
 	if lp.pkgs[f.TypeDefinition.PackageName()] != nil && lp.pkgs[f.TypeDefinition.PackageName()].Types.Scope().
-		Lookup(strings.Replace(f.TypeDefinition.Identifier, "*", "", -1)) != nil {
+		Lookup(withoutAsterix(f.TypeDefinition.Identifier)) != nil {
 		f.Link = true
 	}
+}
+
+func withoutAsterix(s string) string {
+	return strings.Replace(s, "*", "", -1)
 }
