@@ -75,7 +75,7 @@ func (f Field) AsciidocWhiteSpaceBetween() string {
 // 1. to the package, if the origin package is not the current one (optional). Packages use their names as ID.
 // 2. to the fields' type. Fields have a prefixed Hex encoded id embedded in the Asciidoc.
 func (f Field) AsciidocFormattedType() string {
-	return formatType(f.TypeDesc.SrcTypeDefinition, f.TypeDesc.TypeDefinition.ID(), f.TypeDesc.Link)
+	return formatType(f.TypeDesc)
 }
 
 // AsciidocFormattedMapType formats the key and value types of a map to asciidoc format
@@ -83,8 +83,8 @@ func (f Field) AsciidocFormattedMapType() string {
 	srcTypeDef := f.TypeDesc.SrcTypeDefinition
 	keyType := f.MapType.KeyType
 	valueType := f.MapType.ValueType
-	formattedKeySrcTypeDef := formatType(keyType.SrcTypeDefinition, keyType.TypeDefinition.ID(), keyType.Link)
-	formattedValueSrcTypeDef := formatType(valueType.SrcTypeDefinition, valueType.TypeDefinition.ID(), valueType.Link)
+	formattedKeySrcTypeDef := formatType(keyType)
+	formattedValueSrcTypeDef := formatType(valueType)
 
 	srcTypeDef = strings.Replace(srcTypeDef, keyType.SrcTypeDefinition, formattedKeySrcTypeDef, 1)
 	srcTypeDef = strings.Replace(srcTypeDef, valueType.SrcTypeDefinition, formattedValueSrcTypeDef, 1)
@@ -94,25 +94,25 @@ func (f Field) AsciidocFormattedMapType() string {
 }
 
 // formatType formats struct and array types for asciidoc
-func formatType(srcTypeDef, refId string, link bool) string {
+func formatType(td *TypeDesc) string {
 	var replacement string
-	originalString := srcTypeDef
-	srcTypeDef = withoutBrackets(withoutAsterisks(srcTypeDef))
+	originalString := td.SrcTypeDefinition
+	srcTypeDef := withoutBrackets(withoutAsterisks(td.SrcTypeDefinition))
 
 	if strings.Contains(srcTypeDef, ".") {
 		parts := strings.Split(srcTypeDef, ".")
-		if link {
+		if td.Link {
 			// custom type from external package from this project
 			replacement = fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
-				withoutAsterisks(parts[0]), typ3, parts[0], refId, typ3, parts[1])
+				withoutAsterisks(parts[0]), typ3, parts[0], td.TypeDefinition.ID(), typ3, parts[1])
 		} else {
 			// from external package, but not from this project
 			replacement = fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1])
 		}
-	} else if link {
+	} else if td.Link {
 		// custom type from current package
-		replacement = fmt.Sprintf("<<%s, [%s]#%s#>>", refId, typ3, srcTypeDef)
+		replacement = fmt.Sprintf("<<%s, [%s]#%s#>>", td.TypeDefinition.ID(), typ3, srcTypeDef)
 	} else {
 		// if not from external package and not in this package, it's a built-in type
 		replacement = fmt.Sprintf("[%s]#%s#", builtin, srcTypeDef)
@@ -134,7 +134,7 @@ func (fn Function) AsciidocFormattedParameters() string {
 	var s string
 	var c int
 	for _, p := range fn.Parameters {
-		s += fmt.Sprintf("[%s]#%s# [%s]#%s#", variable, p.Name, typ3, p.TypeDesc.SrcTypeDefinition)
+		s += formatType(p.TypeDesc)
 		if c < len(fn.Parameters)-1 {
 			s = addComma(s)
 		}
