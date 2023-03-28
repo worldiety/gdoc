@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -92,42 +93,27 @@ func (f Field) FormattedMapType() string {
 }
 
 func formatType(srcTypeDef, refId string, link bool) string {
-	var result string
-	asterisk := strings.Contains(srcTypeDef, "*")
-	arrayType := strings.Contains(srcTypeDef, "[]")
+	var replacement string
+	arrayType := isArraySig(srcTypeDef)
+	originalString := srcTypeDef
 	if arrayType {
-		srcTypeDef = strings.Replace(srcTypeDef, "[]", "", -1)
-	}
-	if asterisk {
-		srcTypeDef = strings.Replace(srcTypeDef, "*", "", -1)
+		srcTypeDef = withoutBrackets(withoutAsterisks(srcTypeDef))
 	}
 	if strings.Contains(srcTypeDef, ".") {
 		parts := strings.Split(srcTypeDef, ".")
 		if link {
-			result = fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
+			replacement = fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
-				removeAsterisks(parts[0]), typ3, parts[0], refId, typ3, parts[1])
-			return restoreArrayAndAsterisk(result, arrayType, asterisk)
+				withoutAsterisks(parts[0]), typ3, parts[0], refId, typ3, parts[1])
+		} else {
+			replacement = fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1])
 		}
-		return restoreArrayAndAsterisk(fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1]), arrayType, asterisk)
+	} else if link {
+		replacement = fmt.Sprintf("<<%s, [%s]#%s#>>", refId, typ3, srcTypeDef)
+	} else {
+		replacement = fmt.Sprintf("[%s]#%s#", builtin, srcTypeDef)
 	}
-
-	if link {
-		return restoreArrayAndAsterisk(fmt.Sprintf("<<%s, [%s]#%s#>>", refId, typ3, srcTypeDef), arrayType, asterisk)
-	}
-
-	return restoreArrayAndAsterisk(fmt.Sprintf("[%s]#%s#", typ3, srcTypeDef), arrayType, asterisk)
-}
-
-func restoreArrayAndAsterisk(result string, arrayType bool, asterisk bool) string {
-	if arrayType {
-		result = fmt.Sprintf("[]%s", result)
-	}
-	if asterisk {
-		result = fmt.Sprintf("*%s", result)
-	}
-
-	return result
+	return strings.Replace(originalString, srcTypeDef, replacement, 1)
 }
 
 func (fn Function) FormattedComment() string {
@@ -175,7 +161,7 @@ func addComma(s string) string {
 	return fmt.Sprintf("%s, ", s)
 }
 
-func removeAsterisks(s string) string {
+func withoutAsterisks(s string) string {
 	return strings.Replace(s, "*", "", -1)
 }
 
@@ -186,4 +172,13 @@ func FormattedComment(s string) string {
 
 func operatorFormat(s string) string {
 	return fmt.Sprintf("[%s]#%s# ", operator, s)
+}
+
+func isArraySig(s string) bool {
+	re := regexp.MustCompile(`\[\d*]`)
+	return re.MatchString(s)
+}
+func withoutBrackets(s string) string {
+	re := regexp.MustCompile(`\[\d*\]`)
+	return re.ReplaceAllString(s, "")
 }

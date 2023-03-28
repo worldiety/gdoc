@@ -37,6 +37,7 @@ type Config struct {
 	OutputFormat string
 	Packages     string
 	PkgSep       string
+	TestArray    **[][][]*[]api.Field
 }
 
 func (c *Config) Reset() {

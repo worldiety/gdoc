@@ -79,10 +79,8 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 					handleArray(f, p.Name, lp)
 				} else {
 					importPath, identifier, f.Link = typeDescInfo(p.Name, f.SrcTypeDefinition, lp)
+					f.TypeDefinition = api.NewRefID(importPath, identifier)
 				}
-
-				f.TypeDefinition = api.NewRefID(importPath, identifier)
-
 			}
 		}
 	}
@@ -113,22 +111,18 @@ func handleMapType(f *api.Field, pName string, lp *loadedPackages) {
 	}
 }
 
-func withoutAsterix(s string) string {
-	return strings.Replace(s, "*", "", -1)
-}
-
 func typeDescInfo(pName, srcDef string, lp *loadedPackages) (string, string, bool) {
 	var importPath, identifier string
 	var link bool
 	// from current package
 	if !strings.Contains(srcDef, ".") {
 		if p := lp.pkgs[pName]; p != nil {
-			if p.Types.Scope().Lookup(withoutAsterix(srcDef)) != nil {
+			if p.Types.Scope().Lookup(WithoutAsterix(srcDef)) != nil {
 				importPath = p.PkgPath
 				link = true
 			}
 		}
-		identifier = withoutAsterix(srcDef)
+		identifier = WithoutAsterix(srcDef)
 		return importPath, identifier, link
 	}
 
@@ -143,8 +137,7 @@ func typeDescInfo(pName, srcDef string, lp *loadedPackages) (string, string, boo
 }
 
 func handleArray(f *api.Field, pName string, lp *loadedPackages) {
-	tmp := strings.Replace(f.SrcTypeDefinition, "[]", "", -1)
-	importPath, identifier, link := typeDescInfo(pName, tmp, lp)
+	importPath, identifier, link := typeDescInfo(pName, RemoveBrackets(WithoutAsterix(f.SrcTypeDefinition)), lp)
 	f.TypeDefinition = api.NewRefID(importPath, identifier)
 	f.Link = link
 }
