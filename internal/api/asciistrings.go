@@ -94,11 +94,9 @@ func (f Field) FormattedMapType() string {
 
 func formatType(srcTypeDef, refId string, link bool) string {
 	var replacement string
-	arrayType := isArraySig(srcTypeDef)
 	originalString := srcTypeDef
-	if arrayType {
-		srcTypeDef = withoutBrackets(withoutAsterisks(srcTypeDef))
-	}
+	srcTypeDef = withoutBrackets(withoutAsterisks(srcTypeDef))
+
 	if strings.Contains(srcTypeDef, ".") {
 		parts := strings.Split(srcTypeDef, ".")
 		if link {
@@ -174,10 +172,6 @@ func operatorFormat(s string) string {
 	return fmt.Sprintf("[%s]#%s# ", operator, s)
 }
 
-func isArraySig(s string) bool {
-	re := regexp.MustCompile(`\[\d*]`)
-	return re.MatchString(s)
-}
 func withoutBrackets(s string) string {
 	re := regexp.MustCompile(`\[\d*\]`)
 	return re.ReplaceAllString(s, "")
