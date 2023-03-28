@@ -4,8 +4,8 @@
 {{ range . }}
 [.code]
 ****
-{{ if .Comment }}{{ .FormattedComment }} +{{ end }}
-{{ .FormattedSignature }}
+{{ if .Comment }}{{ .AsciidocFormattedComment }} +{{ end }}
+{{ .AsciidocFormattedSignature }}
 ****
 {{ end -}}
 {{ end }}

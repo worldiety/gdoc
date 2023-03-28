@@ -4,12 +4,12 @@
 {{ range . }}
 [.code]
 ****
-{{ if .Comment }}{{.FormattedComment}} +{{ end }}
-{{ .FormattedSigOpen }}
+{{ if .Comment }}{{.AsciidocFormattedComment}} +{{ end }}
+{{ .AsciidocFormattedSigOpen }}
 {{- if .Fields }}{{ range .Fields }}
 {{ template "field" . }}{{ end }}
 {{ end }}
-{{ .FormattedSigClose }}
+{{ .AsciidocFormattedSigClose }}
 ****
 {{ end }}
 {{ end }}

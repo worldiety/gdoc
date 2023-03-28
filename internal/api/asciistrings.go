@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// syntax highlighting for asciidoc
+// syntax highlighting for Asciidoc
 const (
 	keyword      = "keyword"
 	t3xt         = "text"
@@ -36,30 +36,30 @@ func (p Package) AnchorID() string {
 	return fmt.Sprintf("[[%s]]", p.Name)
 }
 
-func (s Struct) FormattedComment() string {
-	return FormattedComment(s.Comment)
+func (s Struct) AsciidocFormattedComment() string {
+	return formattedComment(s.Comment)
 }
 
-func (s Struct) FormattedSigOpen() string {
+func (s Struct) AsciidocFormattedSigOpen() string {
 	return fmt.Sprintf("[%s]#%s# [[%s]][%s]#%s# [%s]#struct# %s",
 		keyword, typ3, s.TypeDefinition.ID(), str1ng, s.Name, keyword, operatorFormat("{"))
 }
 
-func (s Struct) FormattedSigClose() string {
+func (s Struct) AsciidocFormattedSigClose() string {
 	return fmt.Sprintf("%s", operatorFormat("}"))
 }
 
-func (f Field) FormattedComment() string {
+func (f Field) AsciidocFormattedComment() string {
 
-	return FormattedComment(f.Comment)
+	return formattedComment(f.Comment)
 }
 
-func (f Field) FormattedName() string {
+func (f Field) AsciidocFormattedName() string {
 	return fmt.Sprintf("[%s]#%s#", t3xt, f.Name)
 }
 
-// WhiteSpaceBetween adds non-breaking spaces between a fields name and type, to correctly format code blocks in monospace font
-func (f Field) WhiteSpaceBetween() string {
+// AsciidocWhiteSpaceBetween adds non-breaking spaces between a fields name and type, to correctly format code blocks in monospace font
+func (f Field) AsciidocWhiteSpaceBetween() string {
 	var s string
 	if f.ParentStruct != nil {
 		n := f.ParentStruct.WhiteSpaceInFields - len([]rune(f.Name))
@@ -70,15 +70,16 @@ func (f Field) WhiteSpaceBetween() string {
 	return s + " " // at the end a white space has to be added like this or any following formatting code like [code]#*#, will lose its effect
 }
 
-// FormattedType formats a fields' SrcTypeDefinition.
+// AsciidocFormattedType formats a fields' SrcTypeDefinition.
 // It adds links:
 // 1. to the package, if the origin package is not the current one (optional). Packages use their names as ID.
-// 2. to the fields' type. Fields have a prefixed Hex encoded id embedded in the asciidoc.
-func (f Field) FormattedType() string {
+// 2. to the fields' type. Fields have a prefixed Hex encoded id embedded in the Asciidoc.
+func (f Field) AsciidocFormattedType() string {
 	return formatType(f.SrcTypeDefinition, f.TypeDefinition.ID(), f.Link)
 }
 
-func (f Field) FormattedMapType() string {
+// AsciidocFormattedMapType formats the key and value types of a map to asciidoc format
+func (f Field) AsciidocFormattedMapType() string {
 	srcTypeDef := f.SrcTypeDefinition
 	keyType := f.MapType.KeyType
 	valueType := f.MapType.ValueType
@@ -92,6 +93,7 @@ func (f Field) FormattedMapType() string {
 	return srcTypeDef
 }
 
+// formatType formats struct and array types for asciidoc
 func formatType(srcTypeDef, refId string, link bool) string {
 	var replacement string
 	originalString := srcTypeDef
@@ -100,31 +102,35 @@ func formatType(srcTypeDef, refId string, link bool) string {
 	if strings.Contains(srcTypeDef, ".") {
 		parts := strings.Split(srcTypeDef, ".")
 		if link {
+			// custom type from external package from this project
 			replacement = fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
 				withoutAsterisks(parts[0]), typ3, parts[0], refId, typ3, parts[1])
 		} else {
+			// from external package, but not from this project
 			replacement = fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, parts[0], typ3, parts[1])
 		}
 	} else if link {
+		// custom type from current package
 		replacement = fmt.Sprintf("<<%s, [%s]#%s#>>", refId, typ3, srcTypeDef)
 	} else {
+		// if not from external package and not in this package, it's a built-in type
 		replacement = fmt.Sprintf("[%s]#%s#", builtin, srcTypeDef)
 	}
 	return strings.Replace(originalString, srcTypeDef, replacement, 1)
 }
 
-func (fn Function) FormattedComment() string {
-	return fmt.Sprintf(FormattedComment(fn.Comment))
+func (fn Function) AsciidocFormattedComment() string {
+	return fmt.Sprintf(formattedComment(fn.Comment))
 }
 
-func (fn Function) FormattedSignature() string {
+func (fn Function) AsciidocFormattedSignature() string {
 
 	return fmt.Sprintf("[%s]#func# [%s]#%s#(%s) %s",
-		keyword, nam3, fn.Name, fn.FormattedParameters(), fn.FormattedResults())
+		keyword, nam3, fn.Name, fn.AsciidocFormattedParameters(), fn.AsciidocFormattedResults())
 }
 
-func (fn Function) FormattedParameters() string {
+func (fn Function) AsciidocFormattedParameters() string {
 	var s string
 	var c int
 	for _, p := range fn.Parameters {
@@ -137,7 +143,7 @@ func (fn Function) FormattedParameters() string {
 	return s
 }
 
-func (fn Function) FormattedResults() string {
+func (fn Function) AsciidocFormattedResults() string {
 	var results string
 	var s string
 	var c int
@@ -163,7 +169,7 @@ func withoutAsterisks(s string) string {
 	return strings.Replace(s, "*", "", -1)
 }
 
-func FormattedComment(s string) string {
+func formattedComment(s string) string {
 	s = strings.Trim(s, "\n")
 	return fmt.Sprintf("[%s]#// %s#", comment, s)
 }
