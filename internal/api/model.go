@@ -86,19 +86,17 @@ type Function struct {
 	Name           string
 	Comment        string
 	Signature      string
-	Parameters     map[string]*Parameter
-	Results        map[string]*Parameter
+	Parameters     map[string]*Field
+	Results        map[string]*Field
 }
 
 type Field struct {
-	Name              string
-	Comment           string
-	ParentStruct      *Struct // the struct, this field is a property of
-	MapType           *MapType
-	Link              bool
-	TypeDefinition    RefId
-	SrcTypeDefinition string
-	Stereotypes       []Stereotype
+	TypeDesc     *TypeDesc
+	Name         string
+	Comment      string
+	ParentStruct *Struct // the struct, this field is a property of
+	MapType      *MapType
+	Stereotypes  []Stereotype
 }
 
 type MapType struct {
@@ -113,6 +111,5 @@ type TypeDesc struct {
 
 type Constant Field
 type Variable Field
-type Parameter Field
 type Import string
 type Imports []Import

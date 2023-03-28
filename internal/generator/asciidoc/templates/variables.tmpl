@@ -2,7 +2,7 @@
 {{ if . }}
 === Variables
 {{ range . }}
-{{ .Name }} {{ if .SrcTypeDefinition }}({{ .SrcTypeDefinition }}){{ end }}
+{{ .Name }} {{ if .TypeDesc.SrcTypeDefinition }}({{ .TypeDesc.SrcTypeDefinition }}){{ end }}
 {{ if .Comment }}
 * Comment: {{ .Comment }}{{ end }}
 {{ end }}

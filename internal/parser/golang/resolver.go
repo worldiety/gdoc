@@ -55,40 +55,51 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 	for path, p := range m.Packages {
 		p.PackageDefinition = api.NewRefID(path, p.Name)
 		for id, variable := range p.Vars {
-			variable.TypeDefinition = api.NewRefID(path, id)
-			p.Types[variable.Name] = variable.TypeDefinition
+			variable.TypeDesc.TypeDefinition = api.NewRefID(path, id)
+			p.Types[variable.Name] = variable.TypeDesc.TypeDefinition
 		}
 		for id, constant := range p.Consts {
-			constant.TypeDefinition = api.NewRefID(path, id)
-			p.Types[constant.Name] = constant.TypeDefinition
+			constant.TypeDesc.TypeDefinition = api.NewRefID(path, id)
+			p.Types[constant.Name] = constant.TypeDesc.TypeDefinition
 		}
 		for id, function := range p.Functions {
 			function.TypeDefinition = api.NewRefID(path, id)
 			p.Types[function.Name] = function.TypeDefinition
+			handleFields(function.Parameters, p, lp)
+			handleFields(function.Results, p, lp)
 		}
 		for id, s := range p.Structs {
 			s.TypeDefinition = api.NewRefID(path, id)
 			p.Types[s.Name] = s.TypeDefinition
 
 			for _, f := range s.Fields {
-				var importPath string
-				var identifier string
-				if strings.Contains(f.SrcTypeDefinition, "map[") {
-					handleMapType(f, p.Name, lp)
-				} else if strings.Contains(f.SrcTypeDefinition, "[]") {
-					handleArray(f, p.Name, lp)
-				} else {
-					importPath, identifier, f.Link = typeDescInfo(p.Name, f.SrcTypeDefinition, lp)
-					f.TypeDefinition = api.NewRefID(importPath, identifier)
-				}
+				handleField(f, p, lp)
 			}
 		}
 	}
 }
 
+func handleField(f *api.Field, p *api.Package, lp *loadedPackages) {
+	var importPath, identifier string
+	if strings.Contains(f.TypeDesc.SrcTypeDefinition, "map[") {
+		handleMapType(f, p.Name, lp)
+	} else if strings.Contains(f.TypeDesc.SrcTypeDefinition, "[]") {
+		handleArray(f, p.Name, lp)
+	} else {
+		importPath, identifier, f.TypeDesc.Link = typeDescInfo(p.Name, f.TypeDesc.SrcTypeDefinition, lp)
+		f.TypeDesc.TypeDefinition = api.NewRefID(importPath, identifier)
+	}
+}
+
+func handleFields(parameters map[string]*api.Field, currentPackage *api.Package, lp *loadedPackages) {
+	for _, p := range parameters {
+		handleField(p, currentPackage, lp)
+	}
+}
+
 func handleMapType(f *api.Field, pName string, lp *loadedPackages) {
 	var keyTypeDef, valueTypeDef string
-	tmp := strings.Replace(f.SrcTypeDefinition, "map[", "", 1)
+	tmp := strings.Replace(f.TypeDesc.SrcTypeDefinition, "map[", "", 1)
 	tmpArr := strings.Split(tmp, "]")
 	keyTypeDef = tmpArr[0]
 	valueTypeDef = tmpArr[1]
@@ -137,7 +148,7 @@ func typeDescInfo(pName, srcDef string, lp *loadedPackages) (string, string, boo
 }
 
 func handleArray(f *api.Field, pName string, lp *loadedPackages) {
-	importPath, identifier, link := typeDescInfo(pName, RemoveBrackets(WithoutAsterix(f.SrcTypeDefinition)), lp)
-	f.TypeDefinition = api.NewRefID(importPath, identifier)
-	f.Link = link
+	importPath, identifier, link := typeDescInfo(pName, RemoveBrackets(WithoutAsterix(f.TypeDesc.SrcTypeDefinition)), lp)
+	f.TypeDesc.TypeDefinition = api.NewRefID(importPath, identifier)
+	f.TypeDesc.Link = link
 }

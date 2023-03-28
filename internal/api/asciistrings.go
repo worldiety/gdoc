@@ -75,12 +75,12 @@ func (f Field) AsciidocWhiteSpaceBetween() string {
 // 1. to the package, if the origin package is not the current one (optional). Packages use their names as ID.
 // 2. to the fields' type. Fields have a prefixed Hex encoded id embedded in the Asciidoc.
 func (f Field) AsciidocFormattedType() string {
-	return formatType(f.SrcTypeDefinition, f.TypeDefinition.ID(), f.Link)
+	return formatType(f.TypeDesc.SrcTypeDefinition, f.TypeDesc.TypeDefinition.ID(), f.TypeDesc.Link)
 }
 
 // AsciidocFormattedMapType formats the key and value types of a map to asciidoc format
 func (f Field) AsciidocFormattedMapType() string {
-	srcTypeDef := f.SrcTypeDefinition
+	srcTypeDef := f.TypeDesc.SrcTypeDefinition
 	keyType := f.MapType.KeyType
 	valueType := f.MapType.ValueType
 	formattedKeySrcTypeDef := formatType(keyType.SrcTypeDefinition, keyType.TypeDefinition.ID(), keyType.Link)
@@ -134,7 +134,7 @@ func (fn Function) AsciidocFormattedParameters() string {
 	var s string
 	var c int
 	for _, p := range fn.Parameters {
-		s += fmt.Sprintf("[%s]#%s# [%s]#%s#", variable, p.Name, typ3, p.SrcTypeDefinition)
+		s += fmt.Sprintf("[%s]#%s# [%s]#%s#", variable, p.Name, typ3, p.TypeDesc.SrcTypeDefinition)
 		if c < len(fn.Parameters)-1 {
 			s = addComma(s)
 		}
@@ -148,7 +148,7 @@ func (fn Function) AsciidocFormattedResults() string {
 	var s string
 	var c int
 	for _, r := range fn.Results {
-		results += fmt.Sprintf("[%s]#%s#", variable, r.SrcTypeDefinition)
+		results += fmt.Sprintf("[%s]#%s#", variable, r.TypeDesc.SrcTypeDefinition)
 		if c < len(fn.Results)-1 {
 			results = addComma(results)
 		}

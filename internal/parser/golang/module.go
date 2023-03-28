@@ -81,6 +81,7 @@ func newPackage(pkg Package) *api.Package {
 				p.Consts[d.name] = &api.Constant{
 					Comment:     d.doc,
 					Name:        d.name,
+					TypeDesc:    &api.TypeDesc{},
 					Stereotypes: []api.Stereotype{api.StereotypeStruct},
 				}
 			}
@@ -92,10 +93,9 @@ func newPackage(pkg Package) *api.Package {
 		for _, value := range pkg.dpkg.Vars {
 			for _, d := range newValue(value) {
 				p.Vars[d.name] = &api.Variable{
-					Name:    d.name,
-					Comment: d.doc,
-					//SrcTypeDefinition: p.,
-					//TypeDefinition: ,
+					Name:        d.name,
+					Comment:     d.doc,
+					TypeDesc:    &api.TypeDesc{},
 					Stereotypes: []api.Stereotype{api.StereotypeProperty}}
 			}
 		}
@@ -150,29 +150,29 @@ func newFunc(docFunc *doc.Func) *api.Function {
 
 	inArgs := fn.Params.List
 	if len(inArgs) > 0 {
-		f.Parameters = map[string]*api.Parameter{}
+		f.Parameters = map[string]*api.Field{}
 		insertParams(f.Parameters, inArgs, api.StereotypeParameter, api.StereotypeParameterIn)
 	}
 
 	if fn.Results != nil {
 		outArgs := fn.Results.List
 		if len(outArgs) > 0 {
-			f.Results = map[string]*api.Parameter{}
+			f.Results = map[string]*api.Field{}
 			insertParams(f.Results, outArgs, api.StereotypeParameter, api.StereotypeParameterOut, api.StereotypeParameterResult)
 		}
 	}
 
 	return f
 }
-func insertParams(dst map[string]*api.Parameter, src []*ast.Field, st ...api.Stereotype) {
+func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereotype) {
 	c := 0
 	for fnum, field := range src {
 		if len(field.Names) == 0 {
 			in := newField(field, nil)
-			dst["__"+strconv.Itoa(fnum)] = &api.Parameter{
-				Comment:           in.Comment,
-				SrcTypeDefinition: in.SrcTypeDefinition,
-				Stereotypes:       st,
+			dst["__"+strconv.Itoa(fnum)] = &api.Field{
+				Comment:     in.Comment,
+				TypeDesc:    &api.TypeDesc{SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition},
+				Stereotypes: st,
 			}
 			continue
 		}
@@ -184,11 +184,11 @@ func insertParams(dst map[string]*api.Parameter, src []*ast.Field, st ...api.Ste
 			if myName == "" {
 				myName = "__" + strconv.Itoa(c)
 			}
-			dst[name.Name] = &api.Parameter{
-				Name:              myName,
-				Comment:           in.Comment,
-				SrcTypeDefinition: in.SrcTypeDefinition,
-				Stereotypes:       st,
+			dst[name.Name] = &api.Field{
+				Name:        myName,
+				Comment:     in.Comment,
+				TypeDesc:    &api.TypeDesc{SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition},
+				Stereotypes: st,
 			}
 		}
 	}
@@ -203,11 +203,11 @@ func newField(field *ast.Field, s *api.Struct) *api.Field {
 		}
 	}
 	n := &api.Field{
-		Name:              name,
-		Comment:           field.Doc.Text(),
-		SrcTypeDefinition: ast2str(field.Type),
-		ParentStruct:      s,
-		Stereotypes:       []api.Stereotype{api.StereotypeProperty},
+		Name:         name,
+		Comment:      field.Doc.Text(),
+		TypeDesc:     &api.TypeDesc{SrcTypeDefinition: ast2str(field.Type)},
+		ParentStruct: s,
+		Stereotypes:  []api.Stereotype{api.StereotypeProperty},
 	}
 
 	return n
