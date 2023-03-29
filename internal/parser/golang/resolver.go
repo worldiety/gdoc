@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/worldiety/gdoc/internal/api"
 	"golang.org/x/tools/go/packages"
-	"strings"
 )
 
 type loadedPackages struct {
@@ -80,15 +79,20 @@ func addFieldInformation(m *api.Module, lp *loadedPackages) {
 }
 
 func handleField(f *api.Field, p *api.Package, lp *loadedPackages) {
-	var importPath, identifier string
-	if strings.Contains(f.TypeDesc.SrcTypeDefinition, "map[") {
+	handleType(f, p, lp)
+}
+
+func handleType(f *api.Field, p *api.Package, lp *loadedPackages) {
+
+	if f.TypeDesc.Map() {
 		handleMapType(f, p.Name, lp)
-	} else if strings.Contains(f.TypeDesc.SrcTypeDefinition, "[]") {
-		handleArray(f, p.Name, lp)
 	} else {
-		importPath, identifier, f.TypeDesc.Link = typeDescInfo(p.Name, f.TypeDesc.SrcTypeDefinition, lp)
-		f.TypeDesc.TypeDefinition = api.NewRefID(importPath, identifier)
+		typeDescInfo(p.Name, f.TypeDesc, lp)
 	}
+}
+
+func handleBasicType(f *api.Field, pName string, lp *loadedPackages) {
+	typeDescInfo(pName, f.TypeDesc, lp)
 }
 
 func handleFields(parameters map[string]*api.Field, currentPackage *api.Package, lp *loadedPackages) {
@@ -98,57 +102,39 @@ func handleFields(parameters map[string]*api.Field, currentPackage *api.Package,
 }
 
 func handleMapType(f *api.Field, pName string, lp *loadedPackages) {
-	var keyTypeDef, valueTypeDef string
-	tmp := strings.Replace(f.TypeDesc.SrcTypeDefinition, "map[", "", 1)
-	tmpArr := strings.Split(tmp, "]")
-	keyTypeDef = tmpArr[0]
-	valueTypeDef = tmpArr[1]
-
-	var importPath, identifier string
-	var link bool
-	importPath, identifier, link = typeDescInfo(pName, keyTypeDef, lp)
+	keyTypeDef, valueTypeDef := f.TypeDesc.MapSrcDefs()
 	f.MapType = &api.MapType{}
-	f.MapType.KeyType = &api.TypeDesc{
-		TypeDefinition:    api.NewRefID(importPath, identifier),
-		SrcTypeDefinition: keyTypeDef,
-		Link:              link,
-	}
-
-	importPath, identifier, link = typeDescInfo(pName, valueTypeDef, lp)
-	f.MapType.ValueType = &api.TypeDesc{
-		TypeDefinition:    api.NewRefID(importPath, identifier),
-		SrcTypeDefinition: valueTypeDef,
-		Link:              link,
-	}
+	f.MapType.ValueType = &api.TypeDesc{SrcTypeDefinition: valueTypeDef}
+	f.MapType.KeyType = &api.TypeDesc{SrcTypeDefinition: keyTypeDef}
+	typeDescInfo(pName, f.MapType.KeyType, lp)
+	typeDescInfo(pName, f.MapType.ValueType, lp)
 }
 
-func typeDescInfo(pName, srcDef string, lp *loadedPackages) (string, string, bool) {
-	var importPath, identifier string
+func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
+	var importPath string
 	var link bool
-	// from current package
-	if !strings.Contains(srcDef, ".") {
+	var origin api.TypeOrigin
+
+	// from current package or built-in
+	if include, _ := td.IncludesPkg(); !include {
 		if p := lp.pkgs[pName]; p != nil {
-			if p.Types.Scope().Lookup(WithoutAsterix(srcDef)) != nil {
+			if t := p.Types.Scope().Lookup(td.Identifier()); t != nil {
 				importPath = p.PkgPath
 				link = true
+				origin = api.LocalCustom
 			}
 		}
-		identifier = WithoutAsterix(srcDef)
-		return importPath, identifier, link
+	} else {
+		// from other package
+		if p := lp.pkgs[td.PkgName()]; p != nil {
+			importPath = p.PkgPath
+			link = true
+			origin = api.ExternalCustom
+		} else {
+			origin = api.ExternalNonCustom
+		}
 	}
-
-	// from other package
-	parts := strings.Split(srcDef, ".")
-	if p := lp.pkgs[strings.Replace(parts[0], "*", "", -1)]; p != nil {
-		importPath = p.PkgPath
-		identifier = parts[1]
-		link = true
-	}
-	return importPath, identifier, link
-}
-
-func handleArray(f *api.Field, pName string, lp *loadedPackages) {
-	importPath, identifier, link := typeDescInfo(pName, RemoveBrackets(WithoutAsterix(f.TypeDesc.SrcTypeDefinition)), lp)
-	f.TypeDesc.TypeDefinition = api.NewRefID(importPath, identifier)
-	f.TypeDesc.Link = link
+	td.TypeDefinition = api.NewRefID(importPath, td.Identifier())
+	td.Link = link
+	td.TypeOrigin = origin
 }

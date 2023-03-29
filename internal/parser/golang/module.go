@@ -205,14 +205,21 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 		}
 	}
 	n := &api.Field{
-		Name:         name,
-		Comment:      f.Doc.Text(),
-		TypeDesc:     &api.TypeDesc{SrcTypeDefinition: ast2str(f.Type)},
+		Name:    name,
+		Comment: f.Doc.Text(),
+		TypeDesc: &api.TypeDesc{
+			SrcTypeDefinition: ast2str(f.Type),
+		},
 		ParentStruct: s,
 		Stereotypes:  []api.Stereotype{api.StereotypeProperty},
 	}
 
 	return n
+}
+
+func isPointerField(field *ast.Field) bool {
+	_, isPointer := field.Type.(*ast.StarExpr)
+	return isPointer
 }
 
 type docValue struct {

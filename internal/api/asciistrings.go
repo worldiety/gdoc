@@ -99,9 +99,9 @@ func formatType(td *TypeDesc) string {
 	originalString := td.SrcTypeDefinition
 	srcTypeDef := withoutBrackets(withoutAsterisks(td.SrcTypeDefinition))
 
-	if td.LocalType() {
+	if td.TypeOrigin == LocalCustom {
 		parts := strings.Split(srcTypeDef, ".")
-		if td.ExternalCustomType() {
+		if td.TypeOrigin == ExternalCustom {
 			// custom type from external package from this project
 			replacement = fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc
@@ -163,10 +163,6 @@ func (fn Function) AsciidocFormattedResults() string {
 
 func addComma(s string) string {
 	return fmt.Sprintf("%s, ", s)
-}
-
-func withoutAsterisks(s string) string {
-	return strings.Replace(s, "*", "", -1)
 }
 
 func formattedComment(s string) string {

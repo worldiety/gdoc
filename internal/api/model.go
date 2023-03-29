@@ -4,7 +4,17 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"regexp"
 	"strings"
+)
+
+type TypeOrigin int
+
+const (
+	BuiltIn TypeOrigin = iota
+	LocalCustom
+	ExternalCustom
+	ExternalNonCustom
 )
 
 type RefId struct {
@@ -108,14 +118,16 @@ type TypeDesc struct {
 	SrcTypeDefinition string
 	Pointer           bool
 	Link              bool
+	TypeOrigin        TypeOrigin
 }
 
-func (n TypeDesc) LocalType() bool {
-	return strings.Contains(n.SrcTypeDefinition, ".")
+func removeBrackets(str string) string {
+	re := regexp.MustCompile(`\[\d*]`)
+	return re.ReplaceAllString(str, "")
 }
 
-func (n TypeDesc) ExternalCustomType() bool {
-	return n.Link
+func withoutAsterisks(s string) string {
+	return strings.Replace(s, "*", "", -1)
 }
 
 type Constant Field

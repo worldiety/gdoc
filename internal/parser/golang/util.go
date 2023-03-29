@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -84,13 +83,4 @@ func ModulePath(dir string) (string, error) {
 	}
 
 	return modfile.ModulePath(buf), nil
-}
-
-func RemoveBrackets(str string) string {
-	re := regexp.MustCompile(`\[\d*]`)
-	return re.ReplaceAllString(str, "")
-}
-
-func WithoutAsterix(s string) string {
-	return strings.Replace(s, "*", "", -1)
 }
