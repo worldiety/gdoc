@@ -99,9 +99,9 @@ func formatType(td *TypeDesc) string {
 	originalString := td.SrcTypeDefinition
 	srcTypeDef := withoutBrackets(withoutAsterisks(td.SrcTypeDefinition))
 
-	if strings.Contains(srcTypeDef, ".") {
+	if td.LocalType() {
 		parts := strings.Split(srcTypeDef, ".")
-		if td.Link {
+		if td.ExternalCustomType() {
 			// custom type from external package from this project
 			replacement = fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
 				// remove the asterisk to find the linked id, it's still displayed in the doc

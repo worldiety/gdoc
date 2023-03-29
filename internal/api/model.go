@@ -106,7 +106,16 @@ type MapType struct {
 type TypeDesc struct {
 	TypeDefinition    RefId
 	SrcTypeDefinition string
+	Pointer           bool
 	Link              bool
+}
+
+func (n TypeDesc) LocalType() bool {
+	return strings.Contains(n.SrcTypeDefinition, ".")
+}
+
+func (n TypeDesc) ExternalCustomType() bool {
+	return n.Link
 }
 
 type Constant Field
