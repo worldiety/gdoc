@@ -127,8 +127,10 @@ func newStruct(value *doc.Type) *api.Struct {
 			if structType, ok := s.Type.(*ast.StructType); ok {
 
 				for _, field := range structType.Fields.List {
-					if isExported(field.Names[0].Name) {
-						f = append(f, newField(field, myStruct))
+					for _, ident := range field.Names {
+						if isExported(ident.Name) {
+							f = append(f, newField(field, myStruct, ident))
+						}
 					}
 				}
 			}
@@ -168,7 +170,7 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 	c := 0
 	for fnum, field := range src {
 		if len(field.Names) == 0 {
-			in := newField(field, nil)
+			in := newField(field, nil, nil)
 			dst["__"+strconv.Itoa(fnum)] = &api.Field{
 				Comment:     in.Comment,
 				TypeDesc:    &api.TypeDesc{SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition},
@@ -179,8 +181,8 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 
 		for _, name := range field.Names {
 			c++
-			in := newField(field, nil)
-			myName := name.Name
+			in := newField(field, nil, name)
+			myName := in.Name
 			if myName == "" {
 				myName = "__" + strconv.Itoa(c)
 			}
@@ -194,18 +196,18 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 	}
 }
 
-func newField(field *ast.Field, s *api.Struct) *api.Field {
+func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 	var name string
-	if field.Names != nil && field.Names[0] != nil {
-		name = field.Names[0].Name
+	if id != nil {
+		name = id.Name
 		if s != nil && len([]rune(name)) > s.WhiteSpaceInFields {
 			s.WhiteSpaceInFields = len([]rune(name))
 		}
 	}
 	n := &api.Field{
 		Name:         name,
-		Comment:      field.Doc.Text(),
-		TypeDesc:     &api.TypeDesc{SrcTypeDefinition: ast2str(field.Type)},
+		Comment:      f.Doc.Text(),
+		TypeDesc:     &api.TypeDesc{SrcTypeDefinition: ast2str(f.Type)},
 		ParentStruct: s,
 		Stereotypes:  []api.Stereotype{api.StereotypeProperty},
 	}

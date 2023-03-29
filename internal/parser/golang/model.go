@@ -102,7 +102,7 @@ func (td ATypeDesc) RefId() ARefId {
 }
 
 func (td ATypeDesc) String() string {
-	s := ""
+	var s string
 	if td.Pointer {
 		s += "*"
 	}

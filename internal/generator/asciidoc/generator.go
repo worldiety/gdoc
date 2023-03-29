@@ -4,11 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/worldiety/gdoc/internal/api"
+	"github.com/worldiety/gdoc/internal/parser/golang"
 	"log"
 	"reflect"
 	"sort"
 	"text/template"
 )
+
+type Generator struct {
+	module golang.AModule
+}
 
 const (
 	constantsTemplate = "constants"
@@ -19,8 +24,8 @@ const (
 	structTemplate    = "structs"
 )
 
-// ExecuteTemplate uses a type switch to execute the correct template for all input items
-func ExecuteTemplate(t *template.Template, items any, dest *bytes.Buffer) error {
+// executeTemplate uses a type switch to execute the correct template for all input items
+func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error {
 	switch items.(type) {
 	case map[string]*api.Constant:
 		if err := t.ExecuteTemplate(dest, constantsTemplate, items); err != nil {
@@ -61,20 +66,20 @@ func ExecuteTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
 	var outPut bytes.Buffer
 
-	if err := ExecuteTemplate(Templates, module, &outPut); err != nil {
+	if err := executeTemplate(Templates, module, &outPut); err != nil {
 
 		return nil, fmt.Errorf("failed to execute template: %w", err)
 	}
 	sortedPackages := sortPackages(module.Packages)
 	for _, p := range sortedPackages {
-		if err := ExecuteTemplate(Templates, p, &outPut); err != nil {
+		if err := executeTemplate(Templates, p, &outPut); err != nil {
 
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
 		data := []any{p.Structs /*, p.Vars, p.Consts*/, p.Functions}
 		for _, items := range data {
-			if err := ExecuteTemplate(Templates, items, &outPut); err != nil {
+			if err := executeTemplate(Templates, items, &outPut); err != nil {
 
 				return nil, fmt.Errorf("failed to execute template: %w", err)
 			}

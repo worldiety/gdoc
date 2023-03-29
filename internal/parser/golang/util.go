@@ -86,10 +86,6 @@ func ModulePath(dir string) (string, error) {
 	return modfile.ModulePath(buf), nil
 }
 
-func IsArraySig(s string) bool {
-	re := regexp.MustCompile(`\[\d*]`)
-	return re.MatchString(s)
-}
 func RemoveBrackets(str string) string {
 	re := regexp.MustCompile(`\[\d*]`)
 	return re.ReplaceAllString(str, "")
