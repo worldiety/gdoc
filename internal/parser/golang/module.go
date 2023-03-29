@@ -172,8 +172,11 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 		if len(field.Names) == 0 {
 			in := newField(field, nil, nil)
 			dst["__"+strconv.Itoa(fnum)] = &api.Field{
-				Comment:     in.Comment,
-				TypeDesc:    &api.TypeDesc{SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition},
+				Comment: in.Comment,
+				TypeDesc: &api.TypeDesc{
+					SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition,
+					Pointer:           in.TypeDesc.Pointer,
+				},
 				Stereotypes: st,
 			}
 			continue
@@ -187,9 +190,12 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 				myName = "__" + strconv.Itoa(c)
 			}
 			dst[name.Name] = &api.Field{
-				Name:        myName,
-				Comment:     in.Comment,
-				TypeDesc:    &api.TypeDesc{SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition},
+				Name:    myName,
+				Comment: in.Comment,
+				TypeDesc: &api.TypeDesc{
+					SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition,
+					Pointer:           in.TypeDesc.Pointer,
+				},
 				Stereotypes: st,
 			}
 		}
@@ -209,6 +215,7 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 		Comment: f.Doc.Text(),
 		TypeDesc: &api.TypeDesc{
 			SrcTypeDefinition: ast2str(f.Type),
+			Pointer:           isPointerField(f),
 		},
 		ParentStruct: s,
 		Stereotypes:  []api.Stereotype{api.StereotypeProperty},
