@@ -5,16 +5,23 @@ import (
 	"github.com/worldiety/gdoc/internal/api"
 )
 
+type ImportPath = string
 type AModule struct {
-	Module api.Module
+	Readme   string
+	Name     string
+	Packages map[ImportPath]APackage
 }
 
 func NewAModule(module api.Module) AModule {
-	return AModule{Module: module}
+	return AModule{
+		Readme:   module.Readme,
+		Name:     module.Name,
+		Packages: NewAPackages(module.Packages),
+	}
 }
 
 func (m AModule) String() string {
-	return fmt.Sprintf("AModule{Module: %v}", m.Module)
+	return fmt.Sprintf("AModule{Module: %v}", m.String())
 }
 
 type APackage struct {
@@ -23,6 +30,14 @@ type APackage struct {
 
 func NewAPackage(packageVal api.Package) APackage {
 	return APackage{Package: packageVal}
+}
+
+func NewAPackages(packagesVal map[ImportPath]*api.Package) map[string]APackage {
+	pkgs := map[string]APackage{}
+	for importPath, p := range packagesVal {
+		pkgs[importPath] = NewAPackage(*p)
+	}
+	return pkgs
 }
 
 func (p APackage) String() string {
@@ -49,6 +64,14 @@ func NewAStruct(structVal api.Struct) AStruct {
 	return AStruct{Struct: structVal}
 }
 
+func NewAStructs(domainStructs map[string]*api.Struct) map[string]AStruct {
+	var astructs map[string]AStruct
+	for _, s := range domainStructs {
+		astructs[s.Name] = NewAStruct(*s)
+	}
+	return astructs
+}
+
 func (s AStruct) String() string {
 	return fmt.Sprintf("AStruct{Struct: %v}", s.Struct)
 }
@@ -61,8 +84,16 @@ func NewAFunction(functionVal api.Function) AFunction {
 	return AFunction{Function: functionVal}
 }
 
-func (f AFunction) String() string {
-	return fmt.Sprintf("AFunction{Function: %v}", f.Function)
+func NewAFunctions(funcs map[string]*api.Function) map[string]AFunction {
+	var aFunctions map[string]AFunction
+	for _, fn := range funcs {
+		aFunctions[fn.Name] = NewAFunction(*fn)
+	}
+	return aFunctions
+}
+
+func (fn AFunction) String() string {
+	return fmt.Sprintf("AFunction{Function: %v}", fn.Function)
 }
 
 type AField struct {

@@ -37,22 +37,22 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 
 			return fmt.Errorf("unable to exec %v: %w", variablesTemplate, err)
 		}
-	case map[string]*api.Function:
+	case []golang.AFunction:
 		if err := t.ExecuteTemplate(dest, functionsTemplate, items); err != nil {
 
 			return fmt.Errorf("unable to execute %v: %w", functionsTemplate, err)
 		}
-	case *api.Module:
+	case golang.AModule:
 		if err := t.ExecuteTemplate(dest, moduleTemplate, items); err != nil {
 
 			return fmt.Errorf("unable to execute %s: %w", moduleTemplate, err)
 		}
-	case *api.Package:
+	case golang.APackage:
 		if err := t.ExecuteTemplate(dest, packageTemplate, items); err != nil {
 
 			return fmt.Errorf("unable to execute %s: %w", packageTemplate, err)
 		}
-	case map[string]*api.Struct:
+	case []golang.AStruct:
 		if err := t.ExecuteTemplate(dest, structTemplate, items); err != nil {
 			return fmt.Errorf("unable to execute %s: %w", structTemplate, err)
 		}
@@ -63,7 +63,7 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 }
 
 // CreateModuleTemplate takes the parsed module, adds all its information to text templates and returns the outPut buffer
-func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
+func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 	var outPut bytes.Buffer
 
 	if err := executeTemplate(Templates, module, &outPut); err != nil {
@@ -77,7 +77,7 @@ func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{p.Structs /*, p.Vars, p.Consts*/, p.Functions}
+		data := []any{golang.NewAStructs(p.Structs) /*, p.Vars, p.Consts*/, golang.NewAFunctions(p.Functions)}
 		for _, items := range data {
 			if err := executeTemplate(Templates, items, &outPut); err != nil {
 
@@ -89,8 +89,8 @@ func CreateModuleTemplate(module *api.Module) (*bytes.Buffer, error) {
 	return &outPut, nil
 }
 
-func sortPackages(packages map[api.ImportPath]*api.Package) []*api.Package {
-	return sortMapValues(packages, func(a, b *api.Package) bool {
+func sortPackages(packages map[api.ImportPath]golang.APackage) []golang.APackage {
+	return sortMapValues(packages, func(a, b golang.APackage) bool {
 		return a.Name < b.Name
 	})
 }

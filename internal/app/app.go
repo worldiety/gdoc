@@ -110,7 +110,7 @@ func Apply(cfg Config) ([]byte, error) {
 
 		return buf, nil
 	case Adoc, Pdf, Html:
-		output, _ := asciidoc.CreateModuleTemplate(node)
+		output, _ := asciidoc.CreateModuleTemplate(golang.NewAModule(*node))
 
 		return output.Bytes(), nil
 	default:
