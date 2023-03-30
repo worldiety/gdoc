@@ -1,16 +1,9 @@
 {{- define "structs" -}}
 {{ if . }}
+
 === Structs
 {{ range . }}
-[.code]
-****
-{{ if .Comment }}{{.AsciidocFormattedComment}} +{{ end }}
-{{ .AsciidocFormattedSigOpen }}
-{{- if .Fields }}{{ range .Fields }}
-{{ template "field" . }}{{ end }}
-{{ end }}
-{{ .AsciidocFormattedSigClose }}
-****
+{{ .String }}
 {{ end }}
 {{ end }}
 {{ end }}

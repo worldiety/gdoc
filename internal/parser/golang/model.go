@@ -5,6 +5,13 @@ import (
 	"github.com/worldiety/gdoc/internal/api"
 )
 
+const (
+	readmeTitle        = "**__Readme__**"
+	moduleTitlePrefix  = "Module"
+	packageTitlePrefix = "Package"
+	toc                = "\n:toc:"
+)
+
 type ImportPath = string
 type AModule struct {
 	Readme   string
@@ -21,7 +28,7 @@ func NewAModule(module api.Module) AModule {
 }
 
 func (m AModule) String() string {
-	return fmt.Sprintf("AModule{Module: %v}", m.String())
+	return fmt.Sprintf("%s%s%s", m.title(), toc, m.readme())
 }
 
 type APackage struct {
@@ -41,7 +48,7 @@ func NewAPackages(packagesVal map[ImportPath]*api.Package) map[string]APackage {
 }
 
 func (p APackage) String() string {
-	return fmt.Sprintf("APackage{Package: %v}", p.Package)
+	return fmt.Sprintf("%s%s", p.title(), p.readme())
 }
 
 type ARefId struct {
@@ -65,7 +72,7 @@ func NewAStruct(structVal api.Struct) AStruct {
 }
 
 func NewAStructs(domainStructs map[string]*api.Struct) map[string]AStruct {
-	var astructs map[string]AStruct
+	astructs := map[string]AStruct{}
 	for _, s := range domainStructs {
 		astructs[s.Name] = NewAStruct(*s)
 	}
@@ -73,7 +80,12 @@ func NewAStructs(domainStructs map[string]*api.Struct) map[string]AStruct {
 }
 
 func (s AStruct) String() string {
-	return fmt.Sprintf("AStruct{Struct: %v}", s.Struct)
+	var commentString string
+	if s.Comment != "" {
+		commentString = s.asciidocFormattedComment()
+	}
+
+	return codeBlock(fmt.Sprintf("%s\n%s%s", commentString, s.asciidocFormattedSigOpen(), s.asciidocFormattedSigClose()))
 }
 
 type AFunction struct {

@@ -16,6 +16,7 @@ type Generator struct {
 }
 
 const (
+	indexTemplate     = "index"
 	constantsTemplate = "constants"
 	variablesTemplate = "variables"
 	functionsTemplate = "functions"
@@ -27,21 +28,11 @@ const (
 // executeTemplate uses a type switch to execute the correct template for all input items
 func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error {
 	switch items.(type) {
-	case map[string]*api.Constant:
-		if err := t.ExecuteTemplate(dest, constantsTemplate, items); err != nil {
-
-			return fmt.Errorf("unable to exec %v: %w", constantsTemplate, err)
-		}
-	case map[string]*api.Variable:
-		if err := t.ExecuteTemplate(dest, variablesTemplate, items); err != nil {
-
-			return fmt.Errorf("unable to exec %v: %w", variablesTemplate, err)
-		}
-	case []golang.AFunction:
-		if err := t.ExecuteTemplate(dest, functionsTemplate, items); err != nil {
-
-			return fmt.Errorf("unable to execute %v: %w", functionsTemplate, err)
-		}
+	//case []golang.AFunction:
+	//	if err := t.ExecuteTemplate(dest, functionsTemplate, items); err != nil {
+	//
+	//		return fmt.Errorf("unable to execute %v: %w", functionsTemplate, err)
+	//	}
 	case golang.AModule:
 		if err := t.ExecuteTemplate(dest, moduleTemplate, items); err != nil {
 
@@ -52,7 +43,7 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 
 			return fmt.Errorf("unable to execute %s: %w", packageTemplate, err)
 		}
-	case []golang.AStruct:
+	case map[string]golang.AStruct:
 		if err := t.ExecuteTemplate(dest, structTemplate, items); err != nil {
 			return fmt.Errorf("unable to execute %s: %w", structTemplate, err)
 		}
@@ -66,6 +57,9 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 	var outPut bytes.Buffer
 
+	if err := Templates.ExecuteTemplate(&outPut, indexTemplate, nil); err != nil {
+		return nil, fmt.Errorf("failed to execute index template: %w", err)
+	}
 	if err := executeTemplate(Templates, module, &outPut); err != nil {
 
 		return nil, fmt.Errorf("failed to execute template: %w", err)
@@ -77,7 +71,7 @@ func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{golang.NewAStructs(p.Structs) /*, p.Vars, p.Consts*/, golang.NewAFunctions(p.Functions)}
+		data := []any{golang.NewAStructs(p.Structs) /*, p.Vars, p.Consts, golang.NewAFunctions(p.Functions)*/}
 		for _, items := range data {
 			if err := executeTemplate(Templates, items, &outPut); err != nil {
 

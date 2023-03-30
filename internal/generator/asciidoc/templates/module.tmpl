@@ -1,9 +1,3 @@
 {{- define "module" -}}
-:docinfo: shared
-= Module {{ .Name }}
-:toc:
-{{ if .Readme }}
-== **__Readme__**
-{{ .Readme }}
-{{ end }}
+{{.String}}
 {{ end }}
