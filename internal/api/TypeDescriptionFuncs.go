@@ -34,6 +34,16 @@ func (td TypeDesc) PkgName() string {
 	return removeBrackets(withoutAsterisks(strings.Split(td.SrcTypeDefinition, ".")[0]))
 }
 
+func (td TypeDesc) Prefix() string {
+	if td.Pointer {
+		return "*"
+	}
+	if td.Array() {
+		return "[]"
+	}
+	return ""
+}
+
 func (td TypeDesc) mapParts() []string {
 	if td.Map() {
 		tmp := strings.Replace(td.SrcTypeDefinition, "map[", "", 1)

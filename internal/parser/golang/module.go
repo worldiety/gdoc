@@ -7,6 +7,7 @@ import (
 	"go/doc"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -210,12 +211,27 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 			s.WhiteSpaceInFields = len([]rune(name))
 		}
 	}
+
+	m := &api.MapType{}
+	if isMapField(f) {
+		mapType := f.Type.(*ast.MapType)
+		m.KeyType = &api.TypeDesc{
+			SrcTypeDefinition: ast2str(mapType.Key),
+			Pointer:           isPointerType(mapType.Key),
+		}
+		m.ValueType = &api.TypeDesc{
+			SrcTypeDefinition: ast2str(mapType.Value),
+			Pointer:           isPointerType(mapType.Value),
+		}
+	}
+
 	n := &api.Field{
 		Name:    name,
 		Comment: f.Doc.Text(),
 		TypeDesc: &api.TypeDesc{
 			SrcTypeDefinition: ast2str(f.Type),
 			Pointer:           isPointerField(f),
+			MapType:           m,
 		},
 		ParentStruct: s,
 		Stereotypes:  []api.Stereotype{api.StereotypeProperty},
@@ -224,9 +240,35 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 	return n
 }
 
+// isMapField checks if the given *ast.Field is a map or not
+func isMapField(field *ast.Field) bool {
+	if field == nil {
+		return false
+	}
+	if field.Type == nil {
+		return false
+	}
+	_, isMap := field.Type.(*ast.MapType)
+	return isMap
+}
+
 func isPointerField(field *ast.Field) bool {
 	_, isPointer := field.Type.(*ast.StarExpr)
 	return isPointer
+}
+
+// isPointerType checks if the given ast.Expr is a pointer type
+func isPointerType(expr ast.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	switch t := expr.(type) {
+	case *ast.StarExpr:
+		return true
+	case *ast.Ident:
+		return reflect.TypeOf(t.Obj).Kind() == reflect.Ptr
+	}
+	return false
 }
 
 type docValue struct {

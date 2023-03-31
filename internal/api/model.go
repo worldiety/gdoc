@@ -105,7 +105,6 @@ type Field struct {
 	Name         string
 	Comment      string
 	ParentStruct *Struct // the struct, this field is a property of
-	MapType      *MapType
 	Stereotypes  []Stereotype
 }
 
@@ -118,6 +117,7 @@ type TypeDesc struct {
 	SrcTypeDefinition string
 	Pointer           bool
 	Link              bool
+	MapType           *MapType
 	TypeOrigin        TypeOrigin
 }
 

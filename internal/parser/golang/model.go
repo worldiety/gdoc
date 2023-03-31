@@ -9,7 +9,7 @@ const (
 	readmeTitle        = "**__Readme__**"
 	moduleTitlePrefix  = "Module"
 	packageTitlePrefix = "Package"
-	toc                = "\n:toc:"
+	toc                = ":toc:"
 )
 
 type ImportPath = string
@@ -28,7 +28,7 @@ func NewAModule(module api.Module) AModule {
 }
 
 func (m AModule) String() string {
-	return fmt.Sprintf("%s%s%s", m.title(), toc, m.readme())
+	return fmt.Sprintf("%s\n%s%s", m.title(), toc, m.readme())
 }
 
 type APackage struct {
@@ -72,11 +72,11 @@ func NewAStruct(structVal api.Struct) AStruct {
 }
 
 func NewAStructs(domainStructs map[string]*api.Struct) map[string]AStruct {
-	astructs := map[string]AStruct{}
+	aStructs := map[string]AStruct{}
 	for _, s := range domainStructs {
-		astructs[s.Name] = NewAStruct(*s)
+		aStructs[s.Name] = NewAStruct(*s)
 	}
-	return astructs
+	return aStructs
 }
 
 func (s AStruct) String() string {
@@ -84,8 +84,12 @@ func (s AStruct) String() string {
 	if s.Comment != "" {
 		commentString = s.asciidocFormattedComment()
 	}
+	var fieldsString string
+	for _, f := range s.AFields() {
+		fieldsString += f.String()
+	}
 
-	return codeBlock(fmt.Sprintf("%s\n%s%s", commentString, s.asciidocFormattedSigOpen(), s.asciidocFormattedSigClose()))
+	return codeBlock(fmt.Sprintf("%s%s%s%s", commentString, s.asciidocFormattedSigOpen(), fieldsString, s.asciidocFormattedSigClose()))
 }
 
 type AFunction struct {
@@ -116,8 +120,26 @@ func NewAField(fieldVal api.Field) AField {
 	return AField{Field: fieldVal}
 }
 
+func (s AStruct) AFields() []AField {
+	aFields := make([]AField, 0)
+	for _, f := range s.Fields {
+		aFields = append(aFields, NewAField(*f))
+	}
+	return aFields
+}
+
 func (f AField) String() string {
-	return fmt.Sprintf("AField{Field: %v}", f.Field)
+
+	return fmt.Sprintf("%s%s%s%s",
+		f.asciidocFormattedComment(),
+		f.asciidocFormattedName(),
+		f.asciidocWhiteSpaceBetween(),
+		f.asciidocFormattedType(),
+	)
+}
+
+func (f AField) TypeDescription() ATypeDesc {
+	return NewATypeDesc(*f.TypeDesc)
 }
 
 type AMapType struct {

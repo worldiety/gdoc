@@ -91,10 +91,6 @@ func handleType(f *api.Field, p *api.Package, lp *loadedPackages) {
 	}
 }
 
-func handleBasicType(f *api.Field, pName string, lp *loadedPackages) {
-	typeDescInfo(pName, f.TypeDesc, lp)
-}
-
 func handleFields(parameters map[string]*api.Field, currentPackage *api.Package, lp *loadedPackages) {
 	for _, p := range parameters {
 		handleField(p, currentPackage, lp)
@@ -103,11 +99,11 @@ func handleFields(parameters map[string]*api.Field, currentPackage *api.Package,
 
 func handleMapType(f *api.Field, pName string, lp *loadedPackages) {
 	keyTypeDef, valueTypeDef := f.TypeDesc.MapSrcDefs()
-	f.MapType = &api.MapType{}
-	f.MapType.ValueType = &api.TypeDesc{SrcTypeDefinition: valueTypeDef}
-	f.MapType.KeyType = &api.TypeDesc{SrcTypeDefinition: keyTypeDef}
-	typeDescInfo(pName, f.MapType.KeyType, lp)
-	typeDescInfo(pName, f.MapType.ValueType, lp)
+	f.TypeDesc.MapType = &api.MapType{}
+	f.TypeDesc.MapType.ValueType = &api.TypeDesc{SrcTypeDefinition: valueTypeDef}
+	f.TypeDesc.MapType.KeyType = &api.TypeDesc{SrcTypeDefinition: keyTypeDef}
+	typeDescInfo(pName, f.TypeDesc.MapType.KeyType, lp)
+	typeDescInfo(pName, f.TypeDesc.MapType.ValueType, lp)
 }
 
 func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
