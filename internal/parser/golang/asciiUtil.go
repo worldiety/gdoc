@@ -44,14 +44,14 @@ func codeBlock(s string) string {
 }
 
 func (td ATypeDesc) localCustomTypeLink() string {
-	return fmt.Sprintf("%s<<%s, [%s]#%s#>>", td.Prefix(), td.TypeDefinition.ID(), typ3, td.Identifier())
+	return fmt.Sprintf("<<%s, [%s]#%s%s#>>", td.TypeDefinition.ID(), typ3, td.Prefix(), td.Identifier())
 }
 
 func (td ATypeDesc) externalCustomTypeLink() string {
 	// custom type from external package from this project
-	return fmt.Sprintf("<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
+	return fmt.Sprintf("<<%s, [%s]#%s%s#>>.<<%s, [%s]#%s#>>",
 		// remove the asterisk to find the linked id, it's still displayed in the doc
-		td.PkgName(), typ3, td.PkgName(), td.TypeDefinition.ID(), typ3, td.Identifier())
+		td.PkgName(), typ3, td.Prefix(), td.PkgName(), td.TypeDefinition.ID(), typ3, td.Identifier())
 }
 
 func (td ATypeDesc) externalNonCustomTypeLink() string {

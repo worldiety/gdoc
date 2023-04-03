@@ -171,10 +171,10 @@ func (fn AFunction) asciidocFormattedResults() string {
 // AsciidocFormattedMapType formats the key and value types of a map to asciidoc format
 func (f AField) asciidocFormattedMapType() string {
 	srcTypeDef := f.TypeDesc.SrcTypeDefinition
-	keyType := f.TypeDesc.MapType.KeyType
-	valueType := f.TypeDesc.MapType.ValueType
-	formattedKeySrcTypeDef := NewATypeDesc(*keyType).typeString()
-	formattedValueSrcTypeDef := NewATypeDesc(*valueType).typeString()
+	keyType := *f.TypeDesc.MapType.KeyType
+	valueType := *f.TypeDesc.MapType.ValueType
+	formattedKeySrcTypeDef := NewATypeDesc(keyType).typeString()
+	formattedValueSrcTypeDef := NewATypeDesc(valueType).typeString()
 
 	srcTypeDef = strings.Replace(srcTypeDef, keyType.SrcTypeDefinition, formattedKeySrcTypeDef, 1)
 	srcTypeDef = strings.Replace(srcTypeDef, valueType.SrcTypeDefinition, formattedValueSrcTypeDef, 1)
