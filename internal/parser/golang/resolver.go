@@ -30,7 +30,7 @@ func Resolve(m *api.Module) error {
 		}
 	}
 
-	addFieldInformation(m, lp)
+	addTypeInformation(m, lp)
 
 	return nil
 }
@@ -50,40 +50,47 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 }
 
 // add information to the module and all it's sub-parts that the ast package does not provide, but the packages.Package does
-func addFieldInformation(m *api.Module, lp *loadedPackages) {
+func addTypeInformation(m *api.Module, lp *loadedPackages) {
 	for path, p := range m.Packages {
 		p.PackageDefinition = api.NewRefID(path, p.Name)
-		for id, variable := range p.Vars {
-			variable.TypeDesc.TypeDefinition = api.NewRefID(path, id)
-			p.Types[variable.Name] = variable.TypeDesc.TypeDefinition
-		}
-		for id, constant := range p.Consts {
-			constant.TypeDesc.TypeDefinition = api.NewRefID(path, id)
-			p.Types[constant.Name] = constant.TypeDesc.TypeDefinition
-		}
-		for id, function := range p.Functions {
-			function.TypeDefinition = api.NewRefID(path, id)
-			p.Types[function.Name] = function.TypeDefinition
-			handleFields(function.Parameters, p, lp)
-			handleFields(function.Results, p, lp)
-		}
-		for id, s := range p.Structs {
-			s.TypeDefinition = api.NewRefID(path, id)
-			p.Types[s.Name] = s.TypeDefinition
+		addVariableInfo(p, path)
+		addConstantInfo(p, path)
+		addFunctionInfo(p, lp, path)
+		addStructInfo(p, lp, path)
+	}
+}
+func addVariableInfo(p *api.Package, path string) {
+	for id, variable := range p.Vars {
+		variable.TypeDesc.TypeDefinition = api.NewRefID(path, id)
+		p.Types[variable.Name] = variable.TypeDesc.TypeDefinition
+	}
+}
+func addConstantInfo(p *api.Package, path string) {
+	for id, constant := range p.Consts {
+		constant.TypeDesc.TypeDefinition = api.NewRefID(path, id)
+		p.Types[constant.Name] = constant.TypeDesc.TypeDefinition
+	}
+}
+func addFunctionInfo(p *api.Package, lp *loadedPackages, path string) {
+	for id, function := range p.Functions {
+		function.TypeDefinition = api.NewRefID(path, id)
+		p.Types[function.Name] = function.TypeDefinition
+		handleFields(function.Parameters, p, lp)
+		handleFields(function.Results, p, lp)
+	}
+}
+func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
+	for id, s := range p.Structs {
+		s.TypeDefinition = api.NewRefID(path, id)
+		p.Types[s.Name] = s.TypeDefinition
 
-			for _, f := range s.Fields {
-				handleField(f, p, lp)
-			}
+		for _, f := range s.Fields {
+			handleField(f, p, lp)
 		}
 	}
 }
 
 func handleField(f *api.Field, p *api.Package, lp *loadedPackages) {
-	handleType(f, p, lp)
-}
-
-func handleType(f *api.Field, p *api.Package, lp *loadedPackages) {
-
 	if f.TypeDesc.Map() {
 		handleMapType(f, p.Name, lp)
 	} else {
