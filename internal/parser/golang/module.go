@@ -7,7 +7,6 @@ import (
 	"go/doc"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -213,8 +212,7 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 	}
 
 	m := &api.MapType{}
-	if isMapField(f) {
-		mapType := f.Type.(*ast.MapType)
+	if ok, mapType := isMapField(f); ok {
 		m.KeyType = &api.TypeDesc{
 			SrcTypeDefinition: ast2str(mapType.Key),
 			Pointer:           isPointerType(mapType.Key),
@@ -230,31 +228,41 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 		Comment: f.Doc.Text(),
 		TypeDesc: &api.TypeDesc{
 			SrcTypeDefinition: ast2str(f.Type),
-			Pointer:           isPointerField(f),
+			Pointer:           isPointerType(f.Type),
 			MapType:           m,
 		},
 		ParentStruct: s,
 		Stereotypes:  []api.Stereotype{api.StereotypeProperty},
 	}
 
+	if ok, arrayType := isArrayField(f); ok {
+		n.TypeDesc.Pointer = isPointerType(arrayType.Elt)
+	}
+
 	return n
 }
 
 // isMapField checks if the given *ast.Field is a map or not
-func isMapField(field *ast.Field) bool {
-	if field == nil {
-		return false
+func isMapField(f *ast.Field) (bool, *ast.MapType) {
+	if f == nil {
+		return false, nil
 	}
-	if field.Type == nil {
-		return false
+	if f.Type == nil {
+		return false, nil
 	}
-	_, isMap := field.Type.(*ast.MapType)
-	return isMap
+	mapType, isMap := f.Type.(*ast.MapType)
+	return isMap, mapType
 }
 
-func isPointerField(field *ast.Field) bool {
-	_, isPointer := field.Type.(*ast.StarExpr)
-	return isPointer
+func isArrayField(f *ast.Field) (bool, *ast.ArrayType) {
+	if f == nil {
+		return false, nil
+	}
+	if f.Type == nil {
+		return false, nil
+	}
+	arrayType, isArray := f.Type.(*ast.ArrayType)
+	return isArray, arrayType
 }
 
 // isPointerType checks if the given ast.Expr is a pointer type
@@ -262,11 +270,9 @@ func isPointerType(expr ast.Expr) bool {
 	if expr == nil {
 		return false
 	}
-	switch t := expr.(type) {
+	switch expr.(type) {
 	case *ast.StarExpr:
 		return true
-	case *ast.Ident:
-		return reflect.TypeOf(t.Obj).Kind() == reflect.Ptr
 	}
 	return false
 }

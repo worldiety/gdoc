@@ -9,6 +9,7 @@ const (
 	readmeTitle        = "**__Readme__**"
 	moduleTitlePrefix  = "Module"
 	packageTitlePrefix = "Package"
+	structsTitlePrefix = "Structs"
 	toc                = ":toc:"
 )
 
@@ -71,7 +72,17 @@ func NewAStruct(structVal api.Struct) AStruct {
 	return AStruct{Struct: structVal}
 }
 
-func NewAStructs(domainStructs map[string]*api.Struct) map[string]AStruct {
+type AStructs map[string]AStruct
+
+func (as AStructs) title() string {
+	return title(structsTitlePrefix, "", "", 3)
+}
+
+func (as AStructs) String() string {
+	return as.title()
+}
+
+func NewAStructs(domainStructs map[string]*api.Struct) AStructs {
 	aStructs := map[string]AStruct{}
 	for _, s := range domainStructs {
 		aStructs[s.Name] = NewAStruct(*s)

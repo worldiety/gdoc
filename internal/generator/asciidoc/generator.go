@@ -43,7 +43,7 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 
 			return fmt.Errorf("unable to execute %s: %w", packageTemplate, err)
 		}
-	case map[string]golang.AStruct:
+	case golang.AStructs:
 		if err := t.ExecuteTemplate(dest, structTemplate, items); err != nil {
 			return fmt.Errorf("unable to execute %s: %w", structTemplate, err)
 		}

@@ -35,13 +35,19 @@ func (td TypeDesc) PkgName() string {
 }
 
 func (td TypeDesc) Prefix() string {
-	if td.Pointer {
-		return "*"
-	}
+	var s string
 	if td.Array() {
-		return "[]"
+		s += "[]"
 	}
-	return ""
+	if td.Pointer {
+		s += "*"
+	}
+
+	if s == "[]*" {
+		s = "[] *"
+	}
+
+	return s
 }
 
 func (td TypeDesc) mapParts() []string {
