@@ -108,8 +108,14 @@ func handleFields(parameters map[string]*api.Field, currentPackage *api.Package,
 func handleMapType(f *api.Field, pName string, lp *loadedPackages) {
 	keyTypeDef, valueTypeDef := f.TypeDesc.MapSrcDefs()
 	f.TypeDesc.MapType = &api.MapType{}
-	f.TypeDesc.MapType.KeyType = &api.TypeDesc{SrcTypeDefinition: keyTypeDef, Pointer: strings.Contains(keyTypeDef, "*")}
-	f.TypeDesc.MapType.ValueType = &api.TypeDesc{SrcTypeDefinition: valueTypeDef, Pointer: strings.Contains(valueTypeDef, "*")}
+	f.TypeDesc.MapType.KeyType = &api.TypeDesc{SrcTypeDefinition: keyTypeDef,
+		Pointer:   strings.Contains(keyTypeDef, "*"),
+		Linebreak: false,
+	}
+	f.TypeDesc.MapType.ValueType = &api.TypeDesc{SrcTypeDefinition: valueTypeDef,
+		Pointer:   strings.Contains(valueTypeDef, "*"),
+		Linebreak: true,
+	}
 	typeDescInfo(pName, f.TypeDesc.MapType.KeyType, lp)
 	typeDescInfo(pName, f.TypeDesc.MapType.ValueType, lp)
 }

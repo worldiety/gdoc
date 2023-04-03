@@ -81,7 +81,7 @@ func newPackage(pkg Package) *api.Package {
 				p.Consts[d.name] = &api.Constant{
 					Comment:     d.doc,
 					Name:        d.name,
-					TypeDesc:    &api.TypeDesc{},
+					TypeDesc:    &api.TypeDesc{Linebreak: true},
 					Stereotypes: []api.Stereotype{api.StereotypeStruct},
 				}
 			}
@@ -95,7 +95,7 @@ func newPackage(pkg Package) *api.Package {
 				p.Vars[d.name] = &api.Variable{
 					Name:        d.name,
 					Comment:     d.doc,
-					TypeDesc:    &api.TypeDesc{},
+					TypeDesc:    &api.TypeDesc{Linebreak: true},
 					Stereotypes: []api.Stereotype{api.StereotypeProperty}}
 			}
 		}
@@ -129,7 +129,9 @@ func newStruct(value *doc.Type) *api.Struct {
 				for _, field := range structType.Fields.List {
 					for _, ident := range field.Names {
 						if isExported(ident.Name) {
-							f = append(f, newField(field, myStruct, ident))
+							field := newField(field, myStruct, ident)
+							field.TypeDesc.Linebreak = true
+							f = append(f, field)
 						}
 					}
 				}
@@ -176,6 +178,7 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 				TypeDesc: &api.TypeDesc{
 					SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition,
 					Pointer:           in.TypeDesc.Pointer,
+					Linebreak:         false,
 				},
 				Stereotypes: st,
 			}
@@ -195,6 +198,7 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 				TypeDesc: &api.TypeDesc{
 					SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition,
 					Pointer:           in.TypeDesc.Pointer,
+					Linebreak:         false,
 				},
 				Stereotypes: st,
 			}

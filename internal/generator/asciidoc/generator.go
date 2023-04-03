@@ -28,11 +28,11 @@ const (
 // executeTemplate uses a type switch to execute the correct template for all input items
 func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error {
 	switch items.(type) {
-	//case []golang.AFunction:
-	//	if err := t.ExecuteTemplate(dest, functionsTemplate, items); err != nil {
-	//
-	//		return fmt.Errorf("unable to execute %v: %w", functionsTemplate, err)
-	//	}
+	case golang.AFunctions:
+		if err := t.ExecuteTemplate(dest, functionsTemplate, items); err != nil {
+
+			return fmt.Errorf("unable to execute %v: %w", functionsTemplate, err)
+		}
 	case golang.AModule:
 		if err := t.ExecuteTemplate(dest, moduleTemplate, items); err != nil {
 
@@ -71,7 +71,7 @@ func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{golang.NewAStructs(p.Structs) /*, p.Vars, p.Consts, golang.NewAFunctions(p.Functions)*/}
+		data := []any{golang.NewAStructs(p.Structs) /*, p.Vars, p.Consts*/, golang.NewAFunctions(p.Functions)}
 		for _, items := range data {
 			if err := executeTemplate(Templates, items, &outPut); err != nil {
 

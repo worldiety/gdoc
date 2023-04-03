@@ -9,24 +9,26 @@ import (
 
 // syntax highlighting for Asciidoc
 const (
-	keyword      = "keyword"
-	t3xt         = "text"
-	background   = "background"
-	builtin      = "builtin"
-	str1ng       = "string"
-	numb3r       = "number"
-	comment      = "comment"
-	functionDecl = "functionDecl"
-	functionCall = "functionCall"
-	variable     = "variable"
-	Const        = "constant"
-	operator     = "operator"
-	control      = "control"
-	preprocessor = "preprocessor"
-	other        = "other"
-	typ3         = "type"
-	nam3         = "name"
-	code         = "code"
+	keyword         = "keyword"
+	t3xt            = "text"
+	background      = "background"
+	builtin         = "builtin"
+	str1ng          = "string"
+	numb3r          = "number"
+	comment         = "comment"
+	functionDecl    = "functionDecl"
+	functionCall    = "functionCall"
+	variable        = "variable"
+	Const           = "constant"
+	operator        = "operator"
+	control         = "control"
+	preprocessor    = "preprocessor"
+	other           = "other"
+	typ3            = "type"
+	nam3            = "name"
+	info            = "information"
+	code            = "code"
+	functionComment = "functionComment"
 )
 
 func (m AModule) AnchorID() string {
@@ -60,7 +62,11 @@ func (p APackage) readme() string {
 }
 
 func (s AStruct) asciidocFormattedComment() string {
-	return formattedComment(s.Comment)
+	return s.comment().String()
+}
+
+func (s AStruct) comment() AComment {
+	return AComment(s.Comment)
 }
 
 func (s AStruct) asciidocFormattedSigOpen() string {
@@ -70,17 +76,6 @@ func (s AStruct) asciidocFormattedSigOpen() string {
 
 func (s AStruct) asciidocFormattedSigClose() string {
 	return fmt.Sprintf("%s", operatorFormat("}"))
-}
-
-func (f AField) asciidocFormattedComment() string {
-	if f.Comment != "" {
-		return formattedComment(f.Comment)
-	}
-	return ""
-}
-
-func (f AField) asciidocFormattedName() string {
-	return fmt.Sprintf("[%s]#%s#", t3xt, f.Name)
 }
 
 // AsciidocWhiteSpaceBetween adds non-breaking spaces between a fields name and type, to correctly format code blocks in monospace font
@@ -102,11 +97,18 @@ func (f AField) asciidocWhiteSpaceBetween() string {
 func (f AField) asciidocFormattedType() string {
 	var s string
 	if f.TypeDesc.Map() {
-		s = f.asciidocFormattedMapType() + linebreak
+		s = f.asciidocFormattedMapType()
 	} else {
-		s = f.TypeDescription().typeString() + linebreak
+		s = f.TypeDescription().typeString()
+	}
+	if f.TypeDesc.Linebreak {
+		s = addLinebreak(s)
 	}
 	return s
+}
+
+func addLinebreak(s string) string {
+	return s + linebreak
 }
 func (td ATypeDesc) typeString() string {
 	var result string
@@ -126,10 +128,6 @@ func (td ATypeDesc) typeString() string {
 
 	return result
 }
-func (fn AFunction) asciidocFormattedComment() string {
-	return fmt.Sprintf(formattedComment(fn.Comment))
-}
-
 func (fn AFunction) asciidocFormattedSignature() string {
 
 	return fmt.Sprintf("[%s]#func# [%s]#%s#(%s) %s",
@@ -137,35 +135,34 @@ func (fn AFunction) asciidocFormattedSignature() string {
 }
 
 func (fn AFunction) asciidocFormattedParameters() string {
-	//var s string
-	//var c int
-	//for _, p := range fn.Parameters {
-	//	s += p.TypeDesc
-	//	if c < len(fn.Parameters)-1 {
-	//		s = addComma(s)
-	//	}
-	//	c++
-	//}
-	//return s
-	return ""
+	var s string
+	var c int
+	for _, p := range fn.Parameters {
+		s += fmt.Sprintf("%s", NewAField(*p).String())
+		if c < len(fn.Parameters)-1 {
+			s = addComma(s)
+		}
+		c++
+	}
+	return s
 }
 
 func (fn AFunction) asciidocFormattedResults() string {
-	//var results string
-	//var s string
-	//var c int
-	//for _, r := range fn.Results {
-	//	results += fmt.Sprintf("[%s]#%s#", variable, r.TypeDesc.SrcTypeDefinition)
-	//	if c < len(fn.Results)-1 {
-	//		results = addComma(results)
-	//	}
-	//	c++
-	//}
-	//if len(fn.Results) > 1 {
-	//	s = fmt.Sprintf("(%s)", results)
-	//}
+	var results string
+	var s string
+	var c int
+	for _, r := range fn.Results {
+		results += fmt.Sprintf("[%s]#%s#", variable, r.TypeDesc.SrcTypeDefinition)
+		if c < len(fn.Results)-1 {
+			results = addComma(results)
+		}
+		c++
+	}
+	if len(fn.Results) > 1 {
+		s = fmt.Sprintf("(%s)", results)
+	}
 
-	return ""
+	return s
 }
 
 // AsciidocFormattedMapType formats the key and value types of a map to asciidoc format

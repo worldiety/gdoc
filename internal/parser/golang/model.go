@@ -3,14 +3,18 @@ package golang
 import (
 	"fmt"
 	"github.com/worldiety/gdoc/internal/api"
+	"strings"
 )
 
 const (
-	readmeTitle        = "**__Readme__**"
-	moduleTitlePrefix  = "Module"
-	packageTitlePrefix = "Package"
-	structsTitlePrefix = "Structs"
-	toc                = ":toc:"
+	readmeTitle          = "**__Readme__**"
+	moduleTitlePrefix    = "Module"
+	packageTitlePrefix   = "Package"
+	structsTitlePrefix   = "Structs"
+	funcsTitlePrefix     = "Functions"
+	funcTitlePrefix      = "func"
+	toc                  = ":toc:"
+	filteredFieldsNotice = "// contains filtered or unexported fields"
 )
 
 type ImportPath = string
@@ -50,6 +54,24 @@ func NewAPackages(packagesVal map[ImportPath]*api.Package) map[string]APackage {
 
 func (p APackage) String() string {
 	return fmt.Sprintf("%s%s", p.title(), p.readme())
+}
+
+type AComment string
+
+func (ac AComment) String() string {
+	if ac != "" {
+		return formattedComment(string(ac), false)
+	}
+	return ""
+}
+
+type AFunctionComment string
+
+func (afc AFunctionComment) String() string {
+	if afc != "" {
+		return formattedComment(string(afc), true)
+	}
+	return ""
 }
 
 type ARefId struct {
@@ -100,6 +122,10 @@ func (s AStruct) String() string {
 		fieldsString += f.String()
 	}
 
+	if fieldsString == "" {
+		fieldsString = fmt.Sprintf("[%s]#%s#%s", info, filteredFieldsNotice, linebreak)
+	}
+
 	return codeBlock(fmt.Sprintf("%s%s%s%s", commentString, s.asciidocFormattedSigOpen(), fieldsString, s.asciidocFormattedSigClose()))
 }
 
@@ -107,20 +133,35 @@ type AFunction struct {
 	api.Function
 }
 
+type AFunctions map[string]AFunction
+
+func (af AFunctions) String() string {
+	return af.title()
+}
+func (af AFunctions) title() string {
+	return title(funcsTitlePrefix, "", "", 3)
+}
 func NewAFunction(functionVal api.Function) AFunction {
 	return AFunction{Function: functionVal}
 }
 
-func NewAFunctions(funcs map[string]*api.Function) map[string]AFunction {
-	var aFunctions map[string]AFunction
+func NewAFunctions(funcs map[string]*api.Function) AFunctions {
+	aFunctions := map[string]AFunction{}
 	for _, fn := range funcs {
 		aFunctions[fn.Name] = NewAFunction(*fn)
 	}
 	return aFunctions
 }
 
+func (fn AFunction) comment() AFunctionComment {
+	return AFunctionComment(fn.Comment)
+}
 func (fn AFunction) String() string {
-	return fmt.Sprintf("AFunction{Function: %v}", fn.Function)
+	return fmt.Sprintf("%s\n%s\n%s", fn.title(), codeBlock(fmt.Sprintf("%s", fn.asciidocFormattedSignature())), fn.comment().String())
+}
+
+func (fn AFunction) title() string {
+	return fmt.Sprintf("**[%s]#%s# [%s]#%s#**", keyword, funcTitlePrefix, str1ng, fn.Name)
 }
 
 type AField struct {
@@ -142,8 +183,8 @@ func (s AStruct) AFields() []AField {
 func (f AField) String() string {
 
 	return fmt.Sprintf("%s%s%s%s",
-		f.asciidocFormattedComment(),
-		f.asciidocFormattedName(),
+		f.comment().String(),
+		f.name().String(),
 		f.asciidocWhiteSpaceBetween(),
 		f.asciidocFormattedType(),
 	)
@@ -151,6 +192,19 @@ func (f AField) String() string {
 
 func (f AField) TypeDescription() ATypeDesc {
 	return NewATypeDesc(*f.TypeDesc)
+}
+
+func (f AField) comment() AComment {
+	return AComment(f.Comment)
+}
+
+type AFieldName string
+
+func (afn AFieldName) String() string {
+	return fmt.Sprintf("[%s]#%s#", t3xt, string(afn))
+}
+func (f AField) name() AFieldName {
+	return AFieldName(f.Name)
 }
 
 type AMapType struct {
@@ -177,13 +231,48 @@ func (td ATypeDesc) RefId() ARefId {
 	return NewARefId(td.TypeDefinition)
 }
 
-func (td ATypeDesc) String() string {
+func (td ATypeDesc) Prefix() string {
 	var s string
-	if td.Pointer {
-		s += "*"
+	if td.Array() {
+		var prefixEnd int
+		if td.lastAsteriskIndex() > td.lastClosedArrayBracketIndex() {
+			prefixEnd = td.lastAsteriskIndex()
+		} else {
+			prefixEnd = td.lastClosedArrayBracketIndex()
+		}
+		s = td.SrcTypeDefinition[:prefixEnd+1]
+	} else if td.Pointer {
+		s = td.SrcTypeDefinition[:td.lastAsteriskIndex()+1]
 	}
-
-	s += td.RefId().String()
+	escapeChar := "*"
+	s = strings.Replace(s, escapeChar, passThrough(escapeChar), -1)
 
 	return s
+}
+
+func (td ATypeDesc) lastAsteriskIndex() int {
+	return strings.LastIndex(td.SrcTypeDefinition, "*")
+}
+
+func (td ATypeDesc) lastClosedArrayBracketIndex() int {
+	return strings.LastIndex(td.SrcTypeDefinition, "]")
+}
+
+func (td ATypeDesc) localCustomTypeLink() string {
+	return fmt.Sprintf("%s<<%s, [%s]#%s#>>", td.Prefix(), td.TypeDefinition.ID(), typ3, td.Identifier())
+}
+
+func (td ATypeDesc) externalCustomTypeLink() string {
+	// custom type from external package from this project
+	return fmt.Sprintf("%s<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
+		// remove the asterisk to find the linked id, it's still displayed in the doc
+		td.Prefix(), td.PkgName(), typ3, td.PkgName(), td.TypeDefinition.ID(), typ3, td.Identifier())
+}
+
+func (td ATypeDesc) externalNonCustomTypeLink() string {
+	return fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, td.PkgName(), typ3, td.Identifier())
+}
+
+func (td ATypeDesc) builtInTypeLink() string {
+	return fmt.Sprintf("[%s]#%s#", builtin, td.SrcTypeDefinition)
 }

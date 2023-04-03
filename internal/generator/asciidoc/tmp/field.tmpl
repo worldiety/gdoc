@@ -1,4 +1,0 @@
-{{ define "field" }}
-{{ if .Comment }}{{ .AsciidocFormattedComment }}{{ end -}}
-{{ if .Name }}{{ .AsciidocFormattedName }}{{ .AsciidocWhiteSpaceBetween }}{{end}}{{ if .TypeDesc.SrcTypeDefinition }}{{ if .MapType }}{{ .AsciidocFormattedMapType }}{{ else }}{{ .AsciidocFormattedType }}{{ end }}{{ end -}}
-{{ end }}

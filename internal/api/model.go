@@ -117,6 +117,7 @@ type TypeDesc struct {
 	SrcTypeDefinition string
 	Pointer           bool
 	Link              bool
+	Linebreak         bool
 	MapType           *MapType
 	TypeOrigin        TypeOrigin
 }
