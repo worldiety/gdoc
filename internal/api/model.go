@@ -90,7 +90,10 @@ type Struct struct {
 	Fields             []*Field
 	WhiteSpaceInFields int
 }
-
+type Method struct {
+	Function
+	Receiver *Struct
+}
 type Function struct {
 	TypeDefinition RefId
 	Name           string

@@ -8,6 +8,7 @@ import (
 	"github.com/worldiety/gdoc/internal/generator/asciidoc"
 	"github.com/worldiety/gdoc/internal/parser/golang"
 	"gopkg.in/yaml.v3"
+	"log"
 	"strings"
 )
 
@@ -43,7 +44,7 @@ type Config struct {
 func (c *Config) Reset() {
 	wd, err := golang.ModWdRoot()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(fmt.Errorf("could not walk to mod root directory: %w", err))
 	}
 
 	c.ModPath = wd
@@ -60,6 +61,7 @@ func (c *Config) Flags(flags *flag.FlagSet) {
 	flags.StringVar(&c.PkgSep, "pkgSep", c.PkgSep, "sets the path separator between packages. Default is / which is not json-pointer friendly")
 }
 
+// Apply takes a Config and uses the contained instructions to generate documentation.
 func Apply(cfg Config) ([]byte, error) {
 	pkgs := strings.Split(cfg.Packages, ";")
 	if len(pkgs) == 1 && pkgs[0] == "" {

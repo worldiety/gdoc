@@ -83,7 +83,11 @@ func NewARefId(refId api.RefId) ARefId {
 }
 
 func (r ARefId) String() string {
-	return fmt.Sprintf("ARefId{RefId: %v}", r.RefId)
+	return fmt.Sprintf("<<%s, %s>>", r.ID(), r.Identifier)
+}
+
+func (r ARefId) AnchorID() string {
+	return fmt.Sprintf("[[%s]]", r.ID())
 }
 
 type AStruct struct {
@@ -160,8 +164,12 @@ func (fn AFunction) String() string {
 	return fmt.Sprintf("%s\n%s\n%s", fn.title(), codeBlock(fmt.Sprintf("%s", fn.asciidocFormattedSignature())), fn.comment().String())
 }
 
+func (fn AFunction) RefID() ARefId {
+	return NewARefId(fn.TypeDefinition)
+}
+
 func (fn AFunction) title() string {
-	return fmt.Sprintf("**[%s]#%s# [%s]#%s#**", keyword, funcTitlePrefix, str1ng, fn.Name)
+	return fmt.Sprintf("**[%s]#%s# %s%s**", keyword, funcTitlePrefix, fn.RefID().AnchorID(), fn.RefID().Identifier)
 }
 
 type AField struct {

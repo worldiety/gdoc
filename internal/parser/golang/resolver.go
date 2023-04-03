@@ -32,8 +32,17 @@ func Resolve(m *api.Module) error {
 	}
 
 	addTypeInformation(m, lp)
+	addCommentLinks(m, lp)
 
 	return nil
+}
+
+func addCommentLinks(m *api.Module, lp *loadedPackages) {
+	for _, p := range m.Packages {
+		for _, function := range p.Functions {
+			handleComment(function, p, lp)
+		}
+	}
 }
 
 func (lp *loadedPackages) loadPackages(dir string) error {
@@ -88,6 +97,21 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 		for _, f := range s.Fields {
 			handleField(f, p, lp)
 		}
+	}
+}
+
+func handleComment(fn *api.Function, p *api.Package, lp *loadedPackages) {
+	replacementMap := map[string]string{}
+	for _, s := range strings.Split(fn.Comment, " ") {
+		if t, ok := p.Types[s]; ok {
+			replacementMap[t.Identifier] = NewARefId(t).String()
+		} else if t, ok := p.Structs[s]; ok {
+			replacementMap[t.TypeDefinition.Identifier] = NewARefId(t.TypeDefinition).String()
+		}
+	}
+
+	for sToReplace, replacement := range replacementMap {
+		fn.Comment = strings.Replace(fn.Comment, sToReplace, replacement, -1)
 	}
 }
 
