@@ -32,15 +32,15 @@ func Resolve(m *api.Module) error {
 	}
 
 	addTypeInformation(m, lp)
-	addCommentLinks(m, lp)
+	addCommentLinks(m)
 
 	return nil
 }
 
-func addCommentLinks(m *api.Module, lp *loadedPackages) {
+func addCommentLinks(m *api.Module) {
 	for _, p := range m.Packages {
 		for _, function := range p.Functions {
-			handleComment(function, p, lp)
+			function.Comment = handleComment(function.Comment, p, m)
 		}
 	}
 }
@@ -100,19 +100,18 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 	}
 }
 
-func handleComment(fn *api.Function, p *api.Package, lp *loadedPackages) {
+func handleComment(comment string, p *api.Package, m *api.Module) string {
 	replacementMap := map[string]string{}
-	for _, s := range strings.Split(fn.Comment, " ") {
+	for _, s := range strings.Split(comment, " ") {
 		if t, ok := p.Types[s]; ok {
 			replacementMap[t.Identifier] = NewARefId(t).String()
-		} else if t, ok := p.Structs[s]; ok {
-			replacementMap[t.TypeDefinition.Identifier] = NewARefId(t.TypeDefinition).String()
 		}
 	}
 
 	for sToReplace, replacement := range replacementMap {
-		fn.Comment = strings.Replace(fn.Comment, sToReplace, replacement, -1)
+		comment = strings.Replace(comment, sToReplace, replacement, -1)
 	}
+	return comment
 }
 
 func handleField(f *api.Field, p *api.Package, lp *loadedPackages) {
