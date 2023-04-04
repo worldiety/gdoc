@@ -22,10 +22,13 @@ func (td TypeDesc) Identifier() string {
 }
 
 func (td TypeDesc) IncludesPkg() (bool, string) {
-	includes := strings.Contains(td.SrcTypeDefinition, ".")
+	var includes bool
 	var pkgName string
-	if includes {
-		pkgName = td.PkgName()
+	if !strings.Contains(td.SrcTypeDefinition, "...") {
+		includes = strings.Contains(td.SrcTypeDefinition, ".")
+		if includes {
+			pkgName = td.PkgName()
+		}
 	}
 	return includes, pkgName
 }

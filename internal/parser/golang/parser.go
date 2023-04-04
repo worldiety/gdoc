@@ -21,6 +21,8 @@ type Package struct {
 	dir  string
 }
 
+// Parse the specified directory, which will be the current one, if none was specified by the user.
+// Create an api.Module that describes the contained go files.
 func Parse(dir string, onlyImports ...string) (*api.Module, error) {
 	modRoot, err := ModRoot(dir)
 	if err != nil {

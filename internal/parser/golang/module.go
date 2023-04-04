@@ -348,7 +348,7 @@ func ast2str(n ast.Node) string {
 	case *ast.StructType:
 		return "struct"
 	case *ast.Ellipsis:
-		return "..."
+		return "..." + ast2str(t.Elt)
 	case *ast.FuncType:
 		s := "func"
 		if t.TypeParams != nil && len(t.TypeParams.List) > 0 {

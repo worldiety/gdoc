@@ -152,7 +152,7 @@ func (fn AFunction) asciidocFormattedResults() string {
 	var s string
 	var c int
 	for _, r := range fn.Results {
-		results += fmt.Sprintf("[%s]#%s#", variable, r.TypeDesc.SrcTypeDefinition)
+		results += fmt.Sprintf("%s", NewAField(*r).String())
 		if c < len(fn.Results)-1 {
 			results = addComma(results)
 		}

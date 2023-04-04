@@ -189,13 +189,17 @@ func (s AStruct) AFields() []AField {
 }
 
 func (f AField) String() string {
-
-	return fmt.Sprintf("%s%s%s%s",
+	var whiteSpace string
+	if f.Name != "" {
+		whiteSpace = f.asciidocWhiteSpaceBetween()
+	}
+	s := fmt.Sprintf("%s%s%s%s",
 		f.comment().String(),
 		f.name().String(),
-		f.asciidocWhiteSpaceBetween(),
+		whiteSpace,
 		f.asciidocFormattedType(),
 	)
+	return s
 }
 
 func (f AField) TypeDescription() ATypeDesc {
@@ -209,6 +213,9 @@ func (f AField) comment() AComment {
 type AFieldName string
 
 func (afn AFieldName) String() string {
+	if afn == "" {
+		return ""
+	}
 	return fmt.Sprintf("[%s]#%s#", t3xt, string(afn))
 }
 func (f AField) name() AFieldName {

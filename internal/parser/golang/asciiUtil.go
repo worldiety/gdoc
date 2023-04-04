@@ -29,7 +29,7 @@ func formattedComment(s string, function bool) string {
 }
 
 func operatorFormat(s string) string {
-	return fmt.Sprintf("[%s]#%s# ", operator, s)
+	return fmt.Sprintf("[%s]#%s#", operator, s)
 }
 
 func lvl(n int) (lvlStr string) {
