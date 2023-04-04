@@ -42,6 +42,15 @@ func addCommentLinks(m *api.Module) {
 		for _, function := range p.Functions {
 			function.Comment = handleComment(function.Comment, p, m)
 		}
+		for _, s := range p.Structs {
+			s.Comment = handleComment(s.Comment, p, m)
+		}
+		for _, v := range p.Vars {
+			v.Comment = handleComment(v.Comment, p, m)
+		}
+		for _, c := range p.Consts {
+			c.Comment = handleComment(c.Comment, p, m)
+		}
 	}
 }
 
@@ -102,14 +111,33 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 
 func handleComment(comment string, p *api.Package, m *api.Module) string {
 	replacementMap := map[string]string{}
+	// split word
 	for _, s := range strings.Split(comment, " ") {
-		if t, ok := p.Types[s]; ok {
+		// check for type from external package
+		if strings.Contains(s, ".") {
+			parts := strings.Split(s, ".")
+			for path, extPkg := range m.Packages {
+				// check import paths for ext package name
+				if strings.HasSuffix(path, parts[0]) {
+					// add replacement string for pkg name to map
+					pkgReplacement := NewAPackageRefID(extPkg.PackageDefinition).String()
+					var typeReplacement string
+					if t, ok := extPkg.Types[parts[1]]; ok {
+						// add replacement string for external type to map
+						typeReplacement = NewARefId(t).String()
+					}
+					replacementMap[s] = fmt.Sprintf("%s.%s", pkgReplacement, typeReplacement)
+				}
+			}
+		} else if t, ok := p.Types[s]; ok {
+			// if from current package
 			replacementMap[t.Identifier] = NewARefId(t).String()
 		}
 	}
 
 	for sToReplace, replacement := range replacementMap {
-		comment = strings.Replace(comment, sToReplace, replacement, -1)
+		// create asciidoc formatted comment
+		comment = strings.Replace(comment, sToReplace, replacement, 1)
 	}
 	return comment
 }

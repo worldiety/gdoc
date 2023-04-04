@@ -36,6 +36,21 @@ func (m AModule) String() string {
 	return fmt.Sprintf("%s\n%s%s", m.title(), toc, m.readme())
 }
 
+type APackageRefID struct {
+	api.RefId
+}
+
+func NewAPackageRefID(id api.RefId) APackageRefID {
+	return APackageRefID{RefId: id}
+}
+func (p APackage) RefID() APackageRefID {
+	return NewAPackageRefID(p.PackageDefinition)
+}
+func (id APackageRefID) String() string {
+	return fmt.Sprintf("<<%s, %s>>", id.Identifier, id.Identifier)
+}
+
+// APackage is a decorator struct for the api.Package struct
 type APackage struct {
 	api.Package
 }
@@ -224,10 +239,6 @@ func (f AField) name() AFieldName {
 
 type AMapType struct {
 	api.MapType
-}
-
-func NewAMapType(mapTypeVal api.MapType) AMapType {
-	return AMapType{MapType: mapTypeVal}
 }
 
 func (m AMapType) String() string {
