@@ -47,6 +47,10 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 		if err := t.ExecuteTemplate(dest, structTemplate, items); err != nil {
 			return fmt.Errorf("unable to execute %s: %w", structTemplate, err)
 		}
+	case golang.AVariables:
+		if err := t.ExecuteTemplate(dest, variablesTemplate, items); err != nil {
+			return fmt.Errorf("unable to execute %s: %w", variablesTemplate, err)
+		}
 	default:
 		log.Fatalf("Type %v not supported", reflect.TypeOf(items))
 	}
@@ -71,7 +75,7 @@ func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{golang.NewAStructs(p.Structs) /*, p.Vars, p.Consts*/, golang.NewAFunctions(p.Functions)}
+		data := []any{golang.NewAStructs(p.Structs), golang.NewAVariables(p.Vars) /*, p.Consts*/, golang.NewAFunctions(p.Functions)}
 		for _, items := range data {
 			if err := executeTemplate(Templates, items, &outPut); err != nil {
 

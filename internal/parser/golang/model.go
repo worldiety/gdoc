@@ -187,8 +187,36 @@ func (fn AFunction) title() string {
 	return fmt.Sprintf("**[%s]#%s# %s%s**", keyword, funcTitlePrefix, fn.RefID().AnchorID(), fn.RefID().Identifier)
 }
 
+type AVariable struct {
+	api.Variable
+}
+
+func NewAVariable(v api.Variable) AVariable {
+	return AVariable{Variable: v}
+}
+
+type AVariables map[string]AVariable
+
+func NewAVariables(vars map[string]*api.Variable) AVariables {
+	nv := map[string]AVariable{}
+	for name, v := range vars {
+		nv[name] = NewAVariable(*v)
+	}
+	return nv
+}
+
 type AField struct {
 	api.Field
+}
+
+type AFields map[string]AField
+
+func NewAFields(fields map[string]api.Field) AFields {
+	aFields := map[string]AField{}
+	for name, f := range fields {
+		aFields[name] = NewAField(f)
+	}
+	return aFields
 }
 
 func NewAField(fieldVal api.Field) AField {
