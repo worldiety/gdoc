@@ -5,8 +5,14 @@ import (
 	"strings"
 )
 
+type asciidocUtils string
+
 const (
-	linebreak = " +\n"
+	preservedLinebreak = " +\n"
+	simpleLinebreak    = "\n"
+	codeBlockDelimiter = "****"
+	codeBlockName      = "[.code]"
+	passPrefix         = "pass:"
 )
 
 func title(prefix, name, anchor string, n int) string {
@@ -14,7 +20,7 @@ func title(prefix, name, anchor string, n int) string {
 		prefix = fmt.Sprintf(" %s ", prefix)
 	}
 
-	return fmt.Sprintf("\n%s%s%s%s", lvl(n), prefix, anchor, name)
+	return fmt.Sprintf("%s%s%s%s%s", simpleLinebreak, lvl(n), prefix, anchor, name)
 }
 
 func addComma(s string) string {
@@ -23,9 +29,9 @@ func addComma(s string) string {
 
 func formattedComment(s string, function bool) string {
 	if function {
-		return fmt.Sprintf("[%s]#%s#%s", functionComment, strings.Trim(s, "\n"), linebreak)
+		return fmt.Sprintf("[%s]#%s#%s", functionComment, strings.Trim(s, "\n"), preservedLinebreak)
 	}
-	return fmt.Sprintf("[%s]#// %s#%s", comment, s, linebreak)
+	return fmt.Sprintf("[%s]#// %s#%s", comment, s, preservedLinebreak)
 }
 
 func operatorFormat(s string) string {
@@ -40,13 +46,13 @@ func lvl(n int) (lvlStr string) {
 }
 
 func readme(s string, n int) string {
-	return fmt.Sprintf("\n%s %s\n%s", lvl(n), readmeTitle, s)
+	return fmt.Sprintf("\n\n%s %s\n%s", lvl(n), readmeTitle, s)
 }
 
 func codeBlock(s string) string {
-	return fmt.Sprintf("[.code]\n****\n%s\n****", s)
+	return fmt.Sprintf("%s\n%s\n%s\n%s", codeBlockName, codeBlockDelimiter, s, codeBlockDelimiter)
 }
 
 func passThrough(s string) string {
-	return fmt.Sprintf("pass:[%s]", s)
+	return fmt.Sprintf("%s[%s]", passPrefix, s)
 }

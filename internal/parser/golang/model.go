@@ -142,7 +142,7 @@ func (s AStruct) String() string {
 	}
 
 	if fieldsString == "" {
-		fieldsString = fmt.Sprintf("[%s]#%s#%s", info, filteredFieldsNotice, linebreak)
+		fieldsString = fmt.Sprintf("[%s]#%s#%s", info, filteredFieldsNotice, preservedLinebreak)
 	}
 
 	return codeBlock(fmt.Sprintf("%s%s%s%s", commentString, s.asciidocFormattedSigOpen(), fieldsString, s.asciidocFormattedSigClose()))

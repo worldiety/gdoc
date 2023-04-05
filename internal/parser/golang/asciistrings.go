@@ -108,7 +108,7 @@ func (f AField) asciidocFormattedType() string {
 }
 
 func addLinebreak(s string) string {
-	return s + linebreak
+	return s + preservedLinebreak
 }
 func (td ATypeDesc) typeString() string {
 	var result string
