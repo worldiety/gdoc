@@ -64,11 +64,33 @@ const (
 )
 
 type ImportPath = string
+
+// A Module contains various [Package] Pointers.
+// There is also
+//   - a readme and
+//   - a name
+//
+// # A caption
+//
+// Is defined as in markdown.
+// And we have also indented stuff like so:
+//
+//	Module.Packages can be accessed directly.
+//	        and is formatted like pre.
 type Module struct {
 	Readme   string
 	Name     string
 	Packages map[ImportPath]*Package
 }
+
+type List[T any] struct {
+}
+
+func (l *List[T]) Add(t T) {
+
+}
+
+type Vector = List[any]
 
 type Package struct {
 	PackageDefinition RefId
@@ -111,6 +133,15 @@ type Field struct {
 	Stereotypes  []Stereotype
 }
 
+func NewField(name, comment string, t *TypeDesc, parent *Struct) *Field {
+	return &Field{
+		TypeDesc:     t,
+		Name:         name,
+		Comment:      comment,
+		ParentStruct: parent,
+	}
+}
+
 type MapType struct {
 	KeyType, ValueType *TypeDesc
 }
@@ -125,6 +156,15 @@ type TypeDesc struct {
 	TypeOrigin        TypeOrigin
 }
 
+func NewTypeDesc(ref RefId, srcTypeDef string, pointer bool, mapType *MapType) *TypeDesc {
+	return &TypeDesc{
+		TypeDefinition:    ref,
+		SrcTypeDefinition: srcTypeDef,
+		Pointer:           pointer,
+		MapType:           mapType,
+	}
+}
+
 func removeBrackets(str string) string {
 	re := regexp.MustCompile(`\[\d*]`)
 	return re.ReplaceAllString(str, "")
@@ -132,6 +172,14 @@ func removeBrackets(str string) string {
 
 func withoutAsterisks(s string) string {
 	return strings.Replace(s, "*", "", -1)
+}
+
+func NewVariable(name, comment string, t *TypeDesc) *Variable {
+	return &Variable{
+		TypeDesc: t,
+		Name:     name,
+		Comment:  comment,
+	}
 }
 
 type Constant Field

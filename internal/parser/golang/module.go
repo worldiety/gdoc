@@ -91,12 +91,14 @@ func newPackage(pkg Package) *api.Package {
 	if len(pkg.dpkg.Vars) > 0 {
 		p.Vars = map[string]*api.Variable{}
 		for _, value := range pkg.dpkg.Vars {
-			for _, d := range newValue(value) {
-				p.Vars[d.name] = &api.Variable{
-					Name:        d.name,
-					Comment:     d.doc,
-					TypeDesc:    &api.TypeDesc{Linebreak: true},
-					Stereotypes: []api.Stereotype{api.StereotypeProperty}}
+			for _, spec := range value.Decl.Specs {
+				switch t := spec.(type) {
+				case *ast.ValueSpec:
+					for _, ident := range t.Names {
+						p.Vars[ident.Name] =
+							api.NewVariable(ident.Name, t.Comment.Text(), &api.TypeDesc{Linebreak: true})
+					}
+				}
 			}
 		}
 	}
@@ -173,15 +175,11 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 	for fnum, field := range src {
 		if len(field.Names) == 0 {
 			in := newField(field, nil, nil)
-			dst["__"+strconv.Itoa(fnum)] = &api.Field{
-				Comment: in.Comment,
-				TypeDesc: &api.TypeDesc{
-					SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition,
-					Pointer:           in.TypeDesc.Pointer,
-					Linebreak:         false,
-				},
-				Stereotypes: st,
-			}
+			dst["__"+strconv.Itoa(fnum)] = api.NewField("", in.Comment,
+				api.NewTypeDesc(
+					api.RefId{}, in.TypeDesc.SrcTypeDefinition, in.TypeDesc.Pointer, nil), nil)
+			dst["__"+strconv.Itoa(fnum)].Stereotypes = st
+			dst["__"+strconv.Itoa(fnum)].TypeDesc.Linebreak = false
 			continue
 		}
 
@@ -192,16 +190,12 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 			if myName == "" {
 				myName = "__" + strconv.Itoa(c)
 			}
-			dst[name.Name] = &api.Field{
-				Name:    myName,
-				Comment: in.Comment,
-				TypeDesc: &api.TypeDesc{
-					SrcTypeDefinition: in.TypeDesc.SrcTypeDefinition,
-					Pointer:           in.TypeDesc.Pointer,
-					Linebreak:         false,
-				},
-				Stereotypes: st,
-			}
+			dst[name.Name] =
+				api.NewField(myName, in.Comment,
+					api.NewTypeDesc(
+						api.RefId{}, in.TypeDesc.SrcTypeDefinition, in.TypeDesc.Pointer, nil), nil)
+			dst[name.Name].Stereotypes = st
+			dst[name.Name].TypeDesc.Linebreak = true
 		}
 	}
 }
@@ -217,27 +211,12 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 
 	m := &api.MapType{}
 	if ok, mapType := isMapField(f); ok {
-		m.KeyType = &api.TypeDesc{
-			SrcTypeDefinition: ast2str(mapType.Key),
-			Pointer:           isPointerType(mapType.Key),
-		}
-		m.ValueType = &api.TypeDesc{
-			SrcTypeDefinition: ast2str(mapType.Value),
-			Pointer:           isPointerType(mapType.Value),
-		}
+		m.KeyType = api.NewTypeDesc(api.RefId{}, ast2str(mapType.Key), isPointerType(mapType.Key), m)
+		m.ValueType = api.NewTypeDesc(api.RefId{}, ast2str(mapType.Value), isPointerType(mapType.Value), m)
 	}
 
-	n := &api.Field{
-		Name:    name,
-		Comment: f.Doc.Text(),
-		TypeDesc: &api.TypeDesc{
-			SrcTypeDefinition: ast2str(f.Type),
-			Pointer:           isPointerType(f.Type),
-			MapType:           m,
-		},
-		ParentStruct: s,
-		Stereotypes:  []api.Stereotype{api.StereotypeProperty},
-	}
+	n := api.NewField(name, f.Doc.Text(), api.NewTypeDesc(api.RefId{}, ast2str(f.Type), isPointerType(f.Type), m), s)
+	n.Stereotypes = []api.Stereotype{api.StereotypeProperty}
 
 	if ok, arrayType := isArrayField(f); ok {
 		n.TypeDesc.Pointer = isPointerType(arrayType.Elt)
