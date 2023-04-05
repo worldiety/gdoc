@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	readmeTitle          = "**__Readme__**"
+	readmeTitle          = "Readme"
 	moduleTitlePrefix    = "Module"
 	packageTitlePrefix   = "Package"
 	structsTitlePrefix   = "Structs"
@@ -33,7 +33,7 @@ func NewAModule(module api.Module) AModule {
 }
 
 func (m AModule) String() string {
-	return fmt.Sprintf("%s\n%s%s", m.title(), toc, m.readme())
+	return fmt.Sprintf("%s%s%s%s", m.title(), simpleLinebreak, toc, m.readme())
 }
 
 type APackageRefID struct {
@@ -47,7 +47,7 @@ func (p APackage) RefID() APackageRefID {
 	return NewAPackageRefID(p.PackageDefinition)
 }
 func (id APackageRefID) String() string {
-	return fmt.Sprintf("<<%s, %s>>", id.Identifier, id.Identifier)
+	return fmt.Sprintf("%s", enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s", id.Identifier, ws, id.Identifier)))
 }
 
 // APackage is a decorator struct for the api.Package struct
@@ -98,11 +98,11 @@ func NewARefId(refId api.RefId) ARefId {
 }
 
 func (r ARefId) String() string {
-	return fmt.Sprintf("<<%s, %s>>", r.ID(), r.Identifier)
+	return fmt.Sprintf("%s", enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s", r.ID(), ws, r.Identifier)))
 }
 
 func (r ARefId) AnchorID() string {
-	return fmt.Sprintf("[[%s]]", r.ID())
+	return enclosingDoubleBrackets(angle, r.ID())
 }
 
 type AStruct struct {
@@ -142,7 +142,7 @@ func (s AStruct) String() string {
 	}
 
 	if fieldsString == "" {
-		fieldsString = fmt.Sprintf("[%s]#%s#%s", info, filteredFieldsNotice, preservedLinebreak)
+		fieldsString = fmt.Sprintf("%s%s%s", enclosingBrackets(square, info), enclose(formatDelimiter, filteredFieldsNotice), preservedLinebreak)
 	}
 
 	return codeBlock(fmt.Sprintf("%s%s%s%s", commentString, s.asciidocFormattedSigOpen(), fieldsString, s.asciidocFormattedSigClose()))
@@ -176,7 +176,7 @@ func (fn AFunction) comment() AFunctionComment {
 	return AFunctionComment(fn.Comment)
 }
 func (fn AFunction) String() string {
-	return fmt.Sprintf("%s\n%s\n%s", fn.title(), codeBlock(fmt.Sprintf("%s", fn.asciidocFormattedSignature())), fn.comment().String())
+	return fmt.Sprintf("%s%s%s%s%s", fn.title(), ws, codeBlock(fn.asciidocFormattedSignature()), ws, fn.comment().String())
 }
 
 func (fn AFunction) RefID() ARefId {
@@ -184,7 +184,8 @@ func (fn AFunction) RefID() ARefId {
 }
 
 func (fn AFunction) title() string {
-	return fmt.Sprintf("**[%s]#%s# %s%s**", keyword, funcTitlePrefix, fn.RefID().AnchorID(), fn.RefID().Identifier)
+	return fmt.Sprintf("%s", bold(fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, keyword),
+		enclose(formatDelimiter, funcTitlePrefix), ws, fn.RefID().AnchorID(), fn.RefID().Identifier)))
 }
 
 type AVariable struct {
@@ -259,7 +260,7 @@ func (afn AFieldName) String() string {
 	if afn == "" {
 		return ""
 	}
-	return fmt.Sprintf("[%s]#%s#", t3xt, string(afn))
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, t3xt), enclose(formatDelimiter, string(afn)))
 }
 func (f AField) name() AFieldName {
 	return AFieldName(f.Name)
@@ -313,20 +314,24 @@ func (td ATypeDesc) lastClosedArrayBracketIndex() int {
 }
 
 func (td ATypeDesc) localCustomTypeLink() string {
-	return fmt.Sprintf("%s<<%s, [%s]#%s#>>", td.Prefix(), td.TypeDefinition.ID(), typ3, td.Identifier())
+	return fmt.Sprintf("%s%s", td.Prefix(), enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s%s",
+		td.TypeDefinition.ID(), ws, enclosingBrackets(square, typ3), enclose(formatDelimiter, td.Identifier()))))
 }
 
 func (td ATypeDesc) externalCustomTypeLink() string {
 	// custom type from external package from this project
-	return fmt.Sprintf("%s<<%s, [%s]#%s#>>.<<%s, [%s]#%s#>>",
+	return fmt.Sprintf("%s%s%s%s",
 		// remove the asterisk to find the linked id, it's still displayed in the doc
-		td.Prefix(), td.PkgName(), typ3, td.PkgName(), td.TypeDefinition.ID(), typ3, td.Identifier())
+		td.Prefix(), enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s%s", td.PkgName(), ws,
+			enclosingBrackets(square, typ3), enclose(formatDelimiter, td.PkgName()))), dot,
+		enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s%s", td.TypeDefinition.ID(), ws,
+			enclosingBrackets(square, typ3), enclose(formatDelimiter, td.Identifier()))))
 }
 
 func (td ATypeDesc) externalNonCustomTypeLink() string {
-	return fmt.Sprintf("[%s]#%s#.[%s]#%s#", typ3, td.PkgName(), typ3, td.Identifier())
+	return fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, typ3), enclose(formatDelimiter, td.PkgName()), dot, enclosingBrackets(square, typ3), enclose(formatDelimiter, td.Identifier()))
 }
 
 func (td ATypeDesc) builtInTypeLink() string {
-	return fmt.Sprintf("[%s]#%s#", builtin, td.SrcTypeDefinition)
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, builtin), enclose(formatDelimiter, td.SrcTypeDefinition))
 }

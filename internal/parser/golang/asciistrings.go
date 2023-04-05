@@ -29,10 +29,13 @@ const (
 	info            = "information"
 	code            = "code"
 	functionComment = "functionComment"
+	funcTitle       = "func"
+	structTitle     = "struct"
+	mapPrefix       = "map"
 )
 
 func (m AModule) AnchorID() string {
-	return fmt.Sprintf("[[%s]]", m.Name)
+	return enclosingDoubleBrackets(square, m.Name)
 }
 
 func (m AModule) title() string {
@@ -47,7 +50,7 @@ func (m AModule) readme() string {
 }
 
 func (p APackage) AnchorID() string {
-	return fmt.Sprintf("[[%s]]", p.Name)
+	return enclosingDoubleBrackets(square, p.Name)
 }
 
 func (p APackage) title() string {
@@ -70,8 +73,10 @@ func (s AStruct) comment() AComment {
 }
 
 func (s AStruct) asciidocFormattedSigOpen() string {
-	return fmt.Sprintf("[%s]#%s# [[%s]][%s]#%s# [%s]#struct# %s +\n",
-		keyword, typ3, s.TypeDefinition.ID(), str1ng, s.Name, keyword, operatorFormat("{"))
+	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s",
+		enclosingBrackets(square, keyword), enclose(formatDelimiter, typ3), ws, enclosingDoubleBrackets(square, s.TypeDefinition.ID()),
+		enclosingBrackets(square, str1ng), enclose(formatDelimiter, s.Name), ws, enclosingBrackets(square, keyword),
+		enclose(formatDelimiter, structTitle), ws, operatorFormat("{"), preservedLinebreak)
 }
 
 func (s AStruct) asciidocFormattedSigClose() string {
@@ -84,10 +89,10 @@ func (f AField) asciidocWhiteSpaceBetween() string {
 	if f.ParentStruct != nil {
 		n := f.ParentStruct.WhiteSpaceInFields - len([]rune(f.Name))
 		for i := 0; i < n; i++ {
-			s += "{nbsp}" // nbsp element is necessary, " " would not be preserved
+			s += nbsp // nbsp element is necessary, " " would not be preserved
 		}
 	}
-	return s + " " // at the end a white space has to be added like this or any following formatting code like [code]#*#, will lose its effect
+	return s + ws // at the end a white space has to be added like this or any following formatting code like [code]#*#, will lose its effect
 }
 
 // AsciidocFormattedType formats a fields' SrcTypeDefinition.
@@ -130,8 +135,9 @@ func (td ATypeDesc) typeString() string {
 }
 func (fn AFunction) asciidocFormattedSignature() string {
 
-	return fmt.Sprintf("[%s]#func# [%s]#%s#(%s) %s",
-		keyword, nam3, fn.Name, fn.asciidocFormattedParameters(), fn.asciidocFormattedResults())
+	return fmt.Sprintf("%s%s%s%s%s%s%s%s",
+		enclosingBrackets(square, keyword), enclose(formatDelimiter, funcTitle), ws, enclosingBrackets(square, nam3),
+		enclose(formatDelimiter, fn.Name), enclosingBrackets(round, fn.asciidocFormattedParameters()), ws, fn.asciidocFormattedResults())
 }
 
 func (fn AFunction) asciidocFormattedParameters() string {
@@ -159,7 +165,7 @@ func (fn AFunction) asciidocFormattedResults() string {
 		c++
 	}
 	if len(fn.Results) > 1 {
-		s = fmt.Sprintf("(%s)", results)
+		s = enclosingBrackets(round, results)
 	}
 
 	return s
@@ -175,7 +181,8 @@ func (f AField) asciidocFormattedMapType() string {
 
 	srcTypeDef = strings.Replace(srcTypeDef, keyType.SrcTypeDefinition, formattedKeySrcTypeDef, 1)
 	srcTypeDef = strings.Replace(srcTypeDef, valueType.SrcTypeDefinition, formattedValueSrcTypeDef, 1)
-	srcTypeDef = strings.Replace(srcTypeDef, "map", fmt.Sprintf("[%s]"+"#map#", keyword), 1)
+	srcTypeDef = strings.Replace(srcTypeDef, mapPrefix, fmt.Sprintf("%s%s", enclosingBrackets(square, keyword),
+		enclose(formatDelimiter, mapPrefix)), 1)
 
 	return srcTypeDef
 }
