@@ -102,7 +102,7 @@ func (r ARefId) String() string {
 }
 
 func (r ARefId) AnchorID() string {
-	return enclosingDoubleBrackets(angle, r.ID())
+	return enclosingDoubleBrackets(square, fmt.Sprintf("%s", r.ID()))
 }
 
 type AStruct struct {
@@ -176,7 +176,7 @@ func (fn AFunction) comment() AFunctionComment {
 	return AFunctionComment(fn.Comment)
 }
 func (fn AFunction) String() string {
-	return fmt.Sprintf("%s%s%s%s%s", fn.title(), ws, codeBlock(fn.asciidocFormattedSignature()), ws, fn.comment().String())
+	return fmt.Sprintf("%s%s%s%s%s", fn.title(), preservedLinebreak, codeBlock(fn.asciidocFormattedSignature()), simpleLinebreak, fn.comment().String())
 }
 
 func (fn AFunction) RefID() ARefId {

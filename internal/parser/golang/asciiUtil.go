@@ -43,7 +43,7 @@ func addComma(s string) string {
 
 func formattedComment(s string, function bool) string {
 	if function {
-		return fmt.Sprintf("%s%s%s", enclosingBrackets(square, functionComment),
+		return fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, functionComment),
 			enclose(formatDelimiter, strings.Trim(s, simpleLinebreak)), preservedLinebreak)
 	}
 	return fmt.Sprintf("%s%s%s", enclosingBrackets(square, comment),
@@ -59,8 +59,8 @@ func readme(s string, n int) string {
 }
 
 func codeBlock(s string) string {
-	return fmt.Sprintf("%s%s%s%s%s%s%s",
-		codeBlockName, simpleLinebreak, codeBlockDelimiter,
+	return fmt.Sprintf("%s%s%s%s%s%s%s%s",
+		simpleLinebreak, codeBlockName, simpleLinebreak, codeBlockDelimiter,
 		simpleLinebreak, s, simpleLinebreak, codeBlockDelimiter)
 }
 
@@ -78,15 +78,16 @@ func simpleLinebreaks(n int) string {
 
 func enclosingBrackets(bt bracketType, s ...string) string {
 	var result string
+	js := strings.Join(s, "")
 	switch bt {
 	case square:
-		result = fmt.Sprintf("[%s]", s)
+		result = fmt.Sprintf("[%s]", js)
 	case angle:
-		result = fmt.Sprintf("<%s>", s)
+		result = fmt.Sprintf("<%s>", js)
 	case curly:
-		result = fmt.Sprintf("{%s}", s)
+		result = fmt.Sprintf("{%s}", js)
 	case round:
-		result = fmt.Sprintf("(%s)", s)
+		result = fmt.Sprintf("(%s)", js)
 	}
 
 	return result
@@ -94,22 +95,24 @@ func enclosingBrackets(bt bracketType, s ...string) string {
 
 func enclosingDoubleBrackets(bt bracketType, s ...string) string {
 	var result string
+	js := strings.Join(s, "")
 	switch bt {
 	case square:
-		result = fmt.Sprintf("[[%s]]", s)
+		result = fmt.Sprintf("[[%s]]", js)
 	case angle:
-		result = fmt.Sprintf("<<%s>>", s)
+		result = fmt.Sprintf("<<%s>>", js)
 	case curly:
-		result = fmt.Sprintf("{{%s}}", s)
+		result = fmt.Sprintf("{{%s}}", js)
 	case round:
-		result = fmt.Sprintf("((%s))", s)
+		result = fmt.Sprintf("((%s))", js)
 	}
 
 	return result
 }
 
 func enclose(outsideString string, s ...string) string {
-	return fmt.Sprintf("%s%s%s", outsideString, s, outsideString)
+	js := strings.Join(s, "")
+	return fmt.Sprintf("%s%s%s", outsideString, js, outsideString)
 }
 
 func lvl(n int) (lvlStr string) {

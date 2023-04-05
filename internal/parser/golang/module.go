@@ -179,7 +179,6 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 				api.NewTypeDesc(
 					api.RefId{}, in.TypeDesc.SrcTypeDefinition, in.TypeDesc.Pointer, nil), nil)
 			dst["__"+strconv.Itoa(fnum)].Stereotypes = st
-			dst["__"+strconv.Itoa(fnum)].TypeDesc.Linebreak = false
 			continue
 		}
 
@@ -195,7 +194,6 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 					api.NewTypeDesc(
 						api.RefId{}, in.TypeDesc.SrcTypeDefinition, in.TypeDesc.Pointer, nil), nil)
 			dst[name.Name].Stereotypes = st
-			dst[name.Name].TypeDesc.Linebreak = true
 		}
 	}
 }
