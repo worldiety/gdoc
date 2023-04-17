@@ -64,14 +64,6 @@ func (p APackage) readme() string {
 	return ""
 }
 
-func (s AStruct) asciidocFormattedComment() string {
-	return s.comment().String()
-}
-
-func (s AStruct) comment() AComment {
-	return AComment(s.Comment)
-}
-
 func (s AStruct) asciidocFormattedSigOpen() string {
 	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s",
 		enclosingBrackets(square, keyword), enclose(formatDelimiter, typ3), ws, enclosingDoubleBrackets(square, s.TypeDefinition.ID()),

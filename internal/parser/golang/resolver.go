@@ -113,10 +113,10 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 func handleComment(comment string, p *api.Package, m *api.Module) string {
 	replacementMap := map[string]string{}
 	// split word
-	for _, s := range strings.Split(comment, " ") {
+	for _, s := range strings.Split(comment, ws) {
 		// check for type from external package
-		if strings.Contains(s, ".") {
-			parts := strings.Split(s, ".")
+		if strings.Contains(s, dot) {
+			parts := strings.Split(s, dot)
 			for path, extPkg := range m.Packages {
 				// check import paths for ext package name
 				if strings.HasSuffix(path, parts[0]) {
@@ -127,7 +127,7 @@ func handleComment(comment string, p *api.Package, m *api.Module) string {
 						// add replacement string for external type to map
 						typeReplacement = NewARefId(t).String()
 					}
-					replacementMap[s] = fmt.Sprintf("%s.%s", pkgReplacement, typeReplacement)
+					replacementMap[s] = fmt.Sprintf("%s%s%s", pkgReplacement, dot, typeReplacement)
 				}
 			}
 		} else if t, ok := p.Types[s]; ok {

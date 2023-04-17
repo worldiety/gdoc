@@ -17,6 +17,9 @@ const (
 	italicDelimiter    = "__"
 	ws                 = " "
 	dot                = "."
+	hyphen             = "-"
+	asterisk           = "*"
+	comma              = ","
 	nbsp               = "{nbsp}"
 )
 
@@ -31,23 +34,27 @@ const (
 
 func title(prefix, name, anchor string, n int) string {
 	if prefix != "" {
-		prefix = fmt.Sprintf("%s", enclose(" ", prefix))
+		prefix = fmt.Sprintf("%s", enclose(ws, prefix))
 	}
 
 	return fmt.Sprintf("%s%s%s%s%s", simpleLinebreak, lvl(n), prefix, anchor, name)
 }
 
 func addComma(s string) string {
-	return fmt.Sprintf("%s,%s", s, ws)
+	return fmt.Sprintf("%s%s%s", s, comma, ws)
 }
 
-func formattedComment(s string, function bool) string {
-	if function {
-		return fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, comment),
+func formattedComment(s string, belowCodeBlock bool) string {
+	var result string
+
+	if belowCodeBlock {
+		result = fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, comment),
 			enclose(formatDelimiter, strings.Trim(s, simpleLinebreak)), preservedLinebreak)
+	} else {
+		result = fmt.Sprintf("%s%s%s", enclosingBrackets(square, codeBlockComment),
+			enclose(formatDelimiter, commentPrefix, ws, s), preservedLinebreak)
 	}
-	return fmt.Sprintf("%s%s%s", enclosingBrackets(square, codeBlockComment),
-		enclose(formatDelimiter, commentPrefix, ws, s), preservedLinebreak)
+	return result
 }
 
 func operatorFormat(s string) string {

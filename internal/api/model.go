@@ -75,8 +75,8 @@ type ImportPath = string
 // Is defined as in markdown.
 // And we have also indented stuff like so:
 //
-//	Module.Packages can be accessed directly.
-//	        and is formatted like pre.
+//	   Module.Packages can be accessed directly.
+//		        and is formatted like pre.
 type Module struct {
 	Readme   string
 	Name     string

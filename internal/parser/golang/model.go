@@ -93,11 +93,25 @@ func (p APackage) String() string {
 	return fmt.Sprintf("%s%s", p.title(), p.readme())
 }
 
-type AComment string
+type AComment struct {
+	Raw   string
+	Lines []string
+}
+
+func NewAComment(s string) AComment {
+	var lines []string
+	for _, line := range strings.Split(s, simpleLinebreak) {
+		lines = append(lines, line)
+	}
+	return AComment{
+		Raw:   s,
+		Lines: lines,
+	}
+}
 
 func (ac AComment) String() string {
-	if ac != "" {
-		return formattedComment(string(ac), false)
+	if ac.Raw != "" {
+		return formattedComment(ac.Raw, true)
 	}
 	return ""
 }
@@ -153,10 +167,14 @@ func NewAStructs(domainStructs map[string]*api.Struct) AStructs {
 	return aStructs
 }
 
+func (s AStruct) comment() AComment {
+	return NewAComment(s.Comment)
+}
+
 func (s AStruct) String() string {
 	var commentString string
 	if s.Comment != "" {
-		commentString = s.asciidocFormattedComment()
+		commentString = s.comment().String()
 	}
 	var fieldsString string
 	for _, f := range s.AFields() {
@@ -168,7 +186,8 @@ func (s AStruct) String() string {
 			enclose(formatDelimiter, filteredFieldsNotice), preservedLinebreak)
 	}
 
-	return codeBlock(fmt.Sprintf("%s%s%s%s", commentString, s.asciidocFormattedSigOpen(), fieldsString, s.asciidocFormattedSigClose()))
+	return fmt.Sprintf("%s%s", codeBlock(fmt.Sprintf("%s%s%s%s", s.asciidocFormattedSigOpen(),
+		fieldsString, s.asciidocFormattedSigClose(), preservedLinebreak)), commentString)
 }
 
 type AFunction struct {
@@ -297,7 +316,7 @@ func (f AField) TypeDescription() ATypeDesc {
 }
 
 func (f AField) comment() AComment {
-	return AComment(f.Comment)
+	return NewAComment(f.Comment)
 }
 
 type AFieldName string
