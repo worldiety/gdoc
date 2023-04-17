@@ -43,10 +43,10 @@ func addComma(s string) string {
 
 func formattedComment(s string, function bool) string {
 	if function {
-		return fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, functionComment),
+		return fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, comment),
 			enclose(formatDelimiter, strings.Trim(s, simpleLinebreak)), preservedLinebreak)
 	}
-	return fmt.Sprintf("%s%s%s", enclosingBrackets(square, comment),
+	return fmt.Sprintf("%s%s%s", enclosingBrackets(square, codeBlockComment),
 		enclose(formatDelimiter, commentPrefix, ws, s), preservedLinebreak)
 }
 

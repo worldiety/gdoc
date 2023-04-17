@@ -137,7 +137,7 @@ func handleComment(comment string, p *api.Package, m *api.Module) string {
 	}
 
 	for sToReplace, replacement := range replacementMap {
-		// create asciidoc formatted comment
+		// create asciidoc formatted codeBlockComment
 		comment = strings.Replace(comment, sToReplace, replacement, 1)
 	}
 	return comment
