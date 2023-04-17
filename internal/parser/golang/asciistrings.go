@@ -112,6 +112,11 @@ func (f AField) asciidocFormattedType() string {
 	return s
 }
 
+func (v AVariable) asciidocFormattedType() string {
+	f := NewAField(*api.NewField(v.Name, v.Comment, v.TypeDesc, nil))
+	return f.asciidocFormattedType()
+}
+
 func addLinebreak(s string) string {
 	return s + preservedLinebreak
 }

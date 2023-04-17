@@ -1,10 +1,5 @@
 {{ define "variables" -}}
 {{ if . }}
-=== Variables
-{{ range . }}
-{{ .Name }} {{ if .TypeDesc.SrcTypeDefinition }}({{ .TypeDesc.SrcTypeDefinition }}){{ end }}
-{{ if .Comment }}
-* Comment: {{ .Comment }}{{ end }}
-{{ end }}
+{{ .String }}
 {{ end -}}
 {{ end }}

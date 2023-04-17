@@ -95,8 +95,15 @@ func newPackage(pkg Package) *api.Package {
 				switch t := spec.(type) {
 				case *ast.ValueSpec:
 					for _, ident := range t.Names {
-						p.Vars[ident.Name] =
-							api.NewVariable(ident.Name, t.Comment.Text(), &api.TypeDesc{Linebreak: true})
+						if isExported(ident.Name) {
+							p.Vars[ident.Name] =
+								api.NewVariable(ident.Name, t.Comment.Text(),
+									&api.TypeDesc{
+										SrcTypeDefinition: ast2str(t.Type),
+										Pointer:           isPointerType(t.Type),
+										Linebreak:         true,
+									})
+						}
 					}
 				}
 			}

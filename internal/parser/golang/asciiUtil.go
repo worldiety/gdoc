@@ -129,3 +129,11 @@ func bold(s ...string) string {
 func italic(s ...string) string {
 	return enclose(italicDelimiter, s...)
 }
+
+func builtinFormat(s string) string {
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, builtin), enclose(formatDelimiter, s))
+}
+
+func nameFormat(s string) string {
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, nam3), enclose(formatDelimiter, s))
+}

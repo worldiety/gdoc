@@ -12,7 +12,9 @@ const (
 	packageTitlePrefix   = "Package"
 	structsTitlePrefix   = "Structs"
 	funcsTitlePrefix     = "Functions"
+	variablesTitlePrefix = "Variables"
 	funcTitlePrefix      = "func"
+	varPrefix            = "var"
 	toc                  = ":toc:"
 	filteredFieldsNotice = "// contains filtered or unexported fields"
 )
@@ -142,7 +144,8 @@ func (s AStruct) String() string {
 	}
 
 	if fieldsString == "" {
-		fieldsString = fmt.Sprintf("%s%s%s", enclosingBrackets(square, info), enclose(formatDelimiter, filteredFieldsNotice), preservedLinebreak)
+		fieldsString = fmt.Sprintf("%s%s%s", enclosingBrackets(square, info),
+			enclose(formatDelimiter, filteredFieldsNotice), preservedLinebreak)
 	}
 
 	return codeBlock(fmt.Sprintf("%s%s%s%s", commentString, s.asciidocFormattedSigOpen(), fieldsString, s.asciidocFormattedSigClose()))
@@ -176,7 +179,8 @@ func (fn AFunction) comment() AFunctionComment {
 	return AFunctionComment(fn.Comment)
 }
 func (fn AFunction) String() string {
-	return fmt.Sprintf("%s%s%s%s%s", fn.title(), preservedLinebreak, codeBlock(fn.asciidocFormattedSignature()), simpleLinebreak, fn.comment().String())
+	return fmt.Sprintf("%s%s%s%s%s", fn.title(), preservedLinebreak,
+		codeBlock(fn.asciidocFormattedSignature()), simpleLinebreak, fn.comment().String())
 }
 
 func (fn AFunction) RefID() ARefId {
@@ -196,6 +200,11 @@ func NewAVariable(v api.Variable) AVariable {
 	return AVariable{Variable: v}
 }
 
+func (v AVariable) String() string {
+	return fmt.Sprintf("%s%s%s", v.Comment, simpleLinebreak, codeBlock(fmt.Sprintf("%s%s%s%s%s",
+		builtinFormat(varPrefix), ws, nameFormat(v.Name), ws, v.asciidocFormattedType())))
+}
+
 type AVariables map[string]AVariable
 
 func NewAVariables(vars map[string]*api.Variable) AVariables {
@@ -204,6 +213,19 @@ func NewAVariables(vars map[string]*api.Variable) AVariables {
 		nv[name] = NewAVariable(*v)
 	}
 	return nv
+}
+
+func (v AVariables) String() string {
+	var s string
+	for _, current := range v {
+		s += fmt.Sprintf("%s%s", current.String(), simpleLinebreak)
+	}
+	s = strings.Trim(s, "\n")
+	return fmt.Sprintf("%s%s%s", v.title(), simpleLinebreak, s)
+}
+
+func (v AVariables) title() string {
+	return title(variablesTitlePrefix, "", "", 3)
 }
 
 type AField struct {
@@ -333,5 +355,5 @@ func (td ATypeDesc) externalNonCustomTypeLink() string {
 }
 
 func (td ATypeDesc) builtInTypeLink() string {
-	return fmt.Sprintf("%s%s", enclosingBrackets(square, builtin), enclose(formatDelimiter, td.SrcTypeDefinition))
+	return builtinFormat(td.SrcTypeDefinition)
 }

@@ -72,16 +72,17 @@ func (lp *loadedPackages) loadPackages(dir string) error {
 func addTypeInformation(m *api.Module, lp *loadedPackages) {
 	for path, p := range m.Packages {
 		p.PackageDefinition = api.NewRefID(path, p.Name)
-		addVariableInfo(p, path)
+		addVariableInfo(p, lp, path)
 		addConstantInfo(p, path)
 		addFunctionInfo(p, lp, path)
 		addStructInfo(p, lp, path)
 	}
 }
-func addVariableInfo(p *api.Package, path string) {
-	for id, variable := range p.Vars {
-		variable.TypeDesc.TypeDefinition = api.NewRefID(path, id)
-		p.Types[variable.Name] = variable.TypeDesc.TypeDefinition
+func addVariableInfo(p *api.Package, lp *loadedPackages, path string) {
+	for id, v := range p.Vars {
+		v.TypeDesc.TypeDefinition = api.NewRefID(path, id)
+		p.Types[v.Name] = v.TypeDesc.TypeDefinition
+		typeDescInfo(v.Name, v.TypeDesc, lp)
 	}
 }
 func addConstantInfo(p *api.Package, path string) {
