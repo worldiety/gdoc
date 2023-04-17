@@ -16,7 +16,7 @@ type Generator struct {
 }
 
 const (
-	indexTemplate     = "index"
+	headerTemplate    = "header"
 	constantsTemplate = "constants"
 	variablesTemplate = "variables"
 	functionsTemplate = "functions"
@@ -51,6 +51,10 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 		if err := t.ExecuteTemplate(dest, variablesTemplate, items); err != nil {
 			return fmt.Errorf("unable to execute %s: %w", variablesTemplate, err)
 		}
+	case golang.AsciiDocHeader:
+		if err := t.ExecuteTemplate(dest, headerTemplate, items); err != nil {
+			return fmt.Errorf("unable to execute %s: %w", headerTemplate, err)
+		}
 	default:
 		log.Fatalf("Type %v not supported", reflect.TypeOf(items))
 	}
@@ -61,7 +65,8 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 	var outPut bytes.Buffer
 
-	if err := Templates.ExecuteTemplate(&outPut, indexTemplate, nil); err != nil {
+	if err := executeTemplate(Templates, golang.NewAsciiDocHeader(), &outPut); err != nil {
+
 		return nil, fmt.Errorf("failed to execute index template: %w", err)
 	}
 	if err := executeTemplate(Templates, module, &outPut); err != nil {

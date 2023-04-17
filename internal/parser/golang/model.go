@@ -16,10 +16,30 @@ const (
 	funcTitlePrefix      = "func"
 	varPrefix            = "var"
 	toc                  = ":toc:"
+	docInfo              = ":docinfo: shared"
 	filteredFieldsNotice = "// contains filtered or unexported fields"
 )
 
 type ImportPath = string
+
+type AsciiDocHeader struct {
+	Attributes []string
+}
+
+func NewAsciiDocHeader() AsciiDocHeader {
+	s := []string{docInfo, toc}
+	return AsciiDocHeader{Attributes: s}
+}
+
+func (h AsciiDocHeader) String() string {
+	var s string
+	for _, a := range h.Attributes {
+		s += fmt.Sprintf("%s%s", a, simpleLinebreak)
+	}
+	s = strings.Trim(s, simpleLinebreak)
+	return s
+}
+
 type AModule struct {
 	Readme   string
 	Name     string
@@ -35,7 +55,7 @@ func NewAModule(module api.Module) AModule {
 }
 
 func (m AModule) String() string {
-	return fmt.Sprintf("%s%s%s%s", m.title(), simpleLinebreak, toc, m.readme())
+	return fmt.Sprintf("%s%s%s", m.title(), simpleLinebreak, m.readme())
 }
 
 type APackageRefID struct {
