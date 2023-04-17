@@ -14,6 +14,8 @@ var templateFiles embed.FS
 // All available templates have to be called by name, to use them.
 var Templates *template.Template // test comment
 var TestVar *golang.AVariable
+var TestVar2 *golang.AFunction
+var TestVar3 golang.AComment
 
 func init() {
 	tpl, err := template.ParseFS(templateFiles, "templates/*.tmpl")

@@ -205,6 +205,11 @@ func (v AVariable) String() string {
 		builtinFormat(varPrefix), ws, nameFormat(v.Name), ws, v.asciidocFormattedType())))
 }
 
+func (v AVariable) StringRaw() string {
+	return fmt.Sprintf("%s%s%s%s%s",
+		typeFormat(varPrefix), ws, nameFormat(v.Name), ws, v.asciidocFormattedType())
+}
+
 type AVariables map[string]AVariable
 
 func NewAVariables(vars map[string]*api.Variable) AVariables {
@@ -217,9 +222,16 @@ func NewAVariables(vars map[string]*api.Variable) AVariables {
 
 func (v AVariables) String() string {
 	var s string
+	varMap := make(map[string]string)
+
 	for _, current := range v {
-		s += fmt.Sprintf("%s%s", current.String(), simpleLinebreak)
+		if current.Comment == "" {
+			varMap["noComment"] += fmt.Sprintf("%s%s", current.StringRaw(), simpleLinebreak)
+		} else {
+			varMap["commented"] += fmt.Sprintf("%s%s", current.String(), simpleLinebreak)
+		}
 	}
+	s = fmt.Sprintf("%s%s%s", codeBlock(varMap["noComment"]), simpleLinebreak, varMap["commented"])
 	s = strings.Trim(s, "\n")
 	return fmt.Sprintf("%s%s%s", v.title(), simpleLinebreak, s)
 }
@@ -233,14 +245,6 @@ type AField struct {
 }
 
 type AFields map[string]AField
-
-func NewAFields(fields map[string]api.Field) AFields {
-	aFields := map[string]AField{}
-	for name, f := range fields {
-		aFields[name] = NewAField(f)
-	}
-	return aFields
-}
 
 func NewAField(fieldVal api.Field) AField {
 	return AField{Field: fieldVal}

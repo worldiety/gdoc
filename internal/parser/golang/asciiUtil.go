@@ -134,6 +134,10 @@ func builtinFormat(s string) string {
 	return fmt.Sprintf("%s%s", enclosingBrackets(square, builtin), enclose(formatDelimiter, s))
 }
 
+func typeFormat(s string) string {
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, typ3), enclose(formatDelimiter, s))
+}
+
 func nameFormat(s string) string {
 	return fmt.Sprintf("%s%s", enclosingBrackets(square, nam3), enclose(formatDelimiter, s))
 }
