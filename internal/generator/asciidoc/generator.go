@@ -80,7 +80,7 @@ func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{golang.NewAStructs(p.Structs) /*, golang.NewAVariables(p.Vars), p.Consts, golang.NewAFunctions(p.Functions)*/}
+		data := []any{golang.NewAStructs(p.Structs), golang.NewAVariables(p.Vars) /*, p.Consts*/, golang.NewAFunctions(p.Functions)}
 		for _, items := range data {
 			if err := executeTemplate(Templates, items, &outPut); err != nil {
 

@@ -197,3 +197,13 @@ func trimAllSuffixLinebreaks(s string) string {
 	}
 	return s
 }
+
+func indent(s string, n int) string {
+	if n > 0 {
+		s = " " + s
+	}
+	for i := 0; i < n; i++ {
+		s = nbsp + s
+	}
+	return s
+}

@@ -263,7 +263,7 @@ func (s AStruct) String() string {
 	}
 	var fieldsString string
 	for _, f := range s.AFields() {
-		fieldsString += f.String()
+		fieldsString += indent(f.String(), 2)
 	}
 
 	if fieldsString == "" {
@@ -325,8 +325,8 @@ func NewAVariable(v api.Variable) AVariable {
 }
 
 func (v AVariable) String() string {
-	return fmt.Sprintf("%s%s%s", v.Comment, simpleLinebreak, codeBlock(fmt.Sprintf("%s%s%s%s%s",
-		builtinFormat(varPrefix), ws, nameFormat(v.Name), ws, v.asciidocFormattedType())))
+	return codeBlock(fmt.Sprintf("%s%s%s%s%s%s%s%s%s",
+		builtinFormat(varPrefix), ws, nameFormat(v.Name), ws, trimAllSuffixLinebreaks(v.asciidocFormattedType()), ws, passThrough(commentPrefix), ws, v.Comment))
 }
 
 func (v AVariable) StringRaw() string {
@@ -355,7 +355,15 @@ func (v AVariables) String() string {
 			varMap["commented"] += fmt.Sprintf("%s%s", current.String(), simpleLinebreak)
 		}
 	}
-	s = fmt.Sprintf("%s%s%s", codeBlock(varMap["noComment"]), simpleLinebreak, varMap["commented"])
+
+	var noCommentVars, commentedVars string
+	if varMap["noComment"] != "" {
+		noCommentVars = codeBlock(varMap["noComment"])
+	}
+	if varMap["commented"] != "" {
+		commentedVars = varMap["commented"]
+	}
+	s = fmt.Sprintf("%s%s%s", noCommentVars, simpleLinebreak, commentedVars)
 	s = strings.Trim(s, "\n")
 	return fmt.Sprintf("%s%s%s", v.title(), simpleLinebreak, s)
 }
@@ -410,7 +418,7 @@ func (afn AFieldName) String() string {
 	if afn == "" {
 		return ""
 	}
-	return fmt.Sprintf("%s%s", enclosingBrackets(square, t3xt), enclose(hash, string(afn)))
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, variable), enclose(hash, string(afn)))
 }
 func (f AField) name() AFieldName {
 	return AFieldName(f.Name)
