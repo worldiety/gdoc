@@ -7,15 +7,18 @@ import (
 
 const (
 	preservedLinebreak = " +\n"
+	plusSuffix         = " +"
 	simpleLinebreak    = "\n"
 	codeBlockDelimiter = "****"
 	codeBlockName      = "[.code]"
+	mono               = "[mono]"
 	passPrefix         = "pass:"
 	commentPrefix      = "//"
-	formatDelimiter    = "#"
+	hash               = "#"
 	boldDelimiter      = "**"
 	italicDelimiter    = "__"
 	ws                 = " "
+	tab                = "\t"
 	dot                = "."
 	hyphen             = "-"
 	asterisk           = "*"
@@ -44,21 +47,14 @@ func addComma(s string) string {
 	return fmt.Sprintf("%s%s%s", s, comma, ws)
 }
 
-func formattedComment(s string, belowCodeBlock bool) string {
-	var result string
+func formattedComment(s string) string {
 
-	if belowCodeBlock {
-		result = fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, comment),
-			enclose(formatDelimiter, strings.Trim(s, simpleLinebreak)), preservedLinebreak)
-	} else {
-		result = fmt.Sprintf("%s%s%s", enclosingBrackets(square, codeBlockComment),
-			enclose(formatDelimiter, commentPrefix, ws, s), preservedLinebreak)
-	}
-	return result
+	return fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, comment),
+		enclose(hash, strings.Trim(s, simpleLinebreak)), preservedLinebreak)
 }
 
 func operatorFormat(s string) string {
-	return fmt.Sprintf("%s%s", enclosingBrackets(square, operator), enclose(formatDelimiter, s))
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, operator), enclose(hash, s))
 }
 
 func readme(s string, n int) string {
@@ -66,9 +62,9 @@ func readme(s string, n int) string {
 }
 
 func codeBlock(s string) string {
-	return fmt.Sprintf("%s%s%s%s%s%s%s%s",
+	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s",
 		simpleLinebreak, codeBlockName, simpleLinebreak, codeBlockDelimiter,
-		simpleLinebreak, s, simpleLinebreak, codeBlockDelimiter)
+		simpleLinebreak, s, simpleLinebreak, codeBlockDelimiter, simpleLinebreak)
 }
 
 func passThrough(s string) string {
@@ -138,13 +134,66 @@ func italic(s ...string) string {
 }
 
 func builtinFormat(s string) string {
-	return fmt.Sprintf("%s%s", enclosingBrackets(square, builtin), enclose(formatDelimiter, s))
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, builtin), enclose(hash, s))
 }
 
 func typeFormat(s string) string {
-	return fmt.Sprintf("%s%s", enclosingBrackets(square, typ3), enclose(formatDelimiter, s))
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, typ3), enclose(hash, s))
 }
 
 func nameFormat(s string) string {
-	return fmt.Sprintf("%s%s", enclosingBrackets(square, nam3), enclose(formatDelimiter, s))
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, nam3), enclose(hash, s))
+}
+func formatCaption(s string) string {
+	s = strings.Trim(strings.Replace(s, hash, "", -1), ws)
+	return bold(s)
+}
+
+func formatBlock(tmpList ...string) string {
+	var result string
+	for _, s := range tmpList {
+		result += s + simpleLinebreak
+	}
+	return result
+}
+
+func startsWithEitherPrefix(s string, coll ...string) bool {
+	if len(coll) == 0 {
+		return true
+	}
+	for _, pre := range coll {
+		if strings.HasPrefix(s, pre) {
+			return true
+		}
+	}
+	return false
+}
+
+func endsWithEitherSuffix(s string, coll ...string) bool {
+	if len(coll) == 0 {
+		return true
+	}
+	for _, suf := range coll {
+		if strings.HasSuffix(s, suf) {
+			return true
+		}
+	}
+	return false
+}
+
+func trimAllPrefixWSAndTabs(s string) string {
+	for startsWithEitherPrefix(s, ws, tab) {
+		s = strings.TrimPrefix(s, tab)
+		s = strings.TrimPrefix(s, ws)
+	}
+	return s
+}
+
+func trimAllSuffixLinebreaks(s string) string {
+	for endsWithEitherSuffix(s, simpleLinebreak, plusSuffix, preservedLinebreak) {
+		s = strings.TrimSuffix(s, simpleLinebreak)
+		s = strings.TrimSuffix(s, plusSuffix)
+		s = strings.TrimSuffix(s, preservedLinebreak)
+	}
+	return s
 }

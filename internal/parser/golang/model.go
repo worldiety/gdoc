@@ -110,17 +110,102 @@ func NewAComment(s string) AComment {
 }
 
 func (ac AComment) String() string {
-	if ac.Raw != "" {
-		return formattedComment(ac.Raw, true)
+	var original, current string
+	var originalList, tmpList []string
+	var inList, inIndentedBlock bool
+
+	result := ac.Raw
+	for i := 0; i <= len(ac.Lines); i++ {
+		if i < len(ac.Lines) {
+			current = ac.Lines[i]
+			if current == "" {
+				continue
+			}
+		} else {
+			current = ""
+		}
+		original = current
+		if startsWithEitherPrefix(current, ws, tab) {
+			if strings.HasPrefix(strings.Trim(current, ws), hyphen) {
+				// is list -> change godoc list marker (-) for asciidoc list marker (*)
+				originalList = append(originalList, current)
+				current = strings.Replace(current, hyphen, asterisk, 1)
+				tmpList = append(tmpList, current)
+				inList = true
+				continue
+			} else {
+				var count int
+				if !inIndentedBlock {
+					originalList = []string{}
+					tmpList = []string{}
+				}
+				originalList = append(originalList, original)
+				for _, r := range current {
+					if string(r) == tab {
+						count += 4
+						continue
+					}
+					if string(r) == ws {
+						count++
+						continue
+					}
+					current = trimAllPrefixWSAndTabs(current)
+					for i := 0; i < count; i++ {
+						current = nbsp + current
+					}
+					current += plusSuffix
+					tmpList = append(tmpList, current)
+					inIndentedBlock = true
+					break
+				}
+			}
+		} else if inList || inIndentedBlock {
+			// format full list
+			tmp := formatBlock(tmpList...)
+			original = ""
+			for _, s := range originalList {
+				original += s + simpleLinebreak
+			}
+
+			if inIndentedBlock {
+				tmp = mono + enclose(hash, trimAllSuffixLinebreaks(tmp)) + plusSuffix
+			}
+			if i == len(ac.Lines) {
+				original = trimAllSuffixLinebreaks(original)
+			}
+			result = strings.Replace(result, original, tmp, 1)
+			inList = false
+			inIndentedBlock = false
+			i = i - 1
+		} else if strings.HasPrefix(current, hash) {
+			// Caption
+			current = formatCaption(current)
+			result = strings.Replace(result, original, current, 1)
+		} else {
+			var tmp string
+			var edited bool
+			for _, s := range strings.Split(current, ws) {
+				if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
+					tmp = strings.Replace(current, "]", "", 1)
+					tmp = strings.Replace(tmp, "[", "", 1)
+					edited = true
+					break
+				}
+			}
+			if edited {
+				result = strings.Replace(result, original, tmp, 1)
+			}
+		}
 	}
-	return ""
+
+	return result
 }
 
 type AFunctionComment string
 
 func (afc AFunctionComment) String() string {
 	if afc != "" {
-		return formattedComment(string(afc), true)
+		return formattedComment(string(afc))
 	}
 	return ""
 }
@@ -183,7 +268,7 @@ func (s AStruct) String() string {
 
 	if fieldsString == "" {
 		fieldsString = fmt.Sprintf("%s%s%s", enclosingBrackets(square, info),
-			enclose(formatDelimiter, filteredFieldsNotice), preservedLinebreak)
+			enclose(hash, filteredFieldsNotice), preservedLinebreak)
 	}
 
 	return fmt.Sprintf("%s%s", codeBlock(fmt.Sprintf("%s%s%s%s", s.asciidocFormattedSigOpen(),
@@ -228,7 +313,7 @@ func (fn AFunction) RefID() ARefId {
 
 func (fn AFunction) title() string {
 	return fmt.Sprintf("%s", bold(fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, keyword),
-		enclose(formatDelimiter, funcTitlePrefix), ws, fn.RefID().AnchorID(), fn.RefID().Identifier)))
+		enclose(hash, funcTitlePrefix), ws, fn.RefID().AnchorID(), fn.RefID().Identifier)))
 }
 
 type AVariable struct {
@@ -325,7 +410,7 @@ func (afn AFieldName) String() string {
 	if afn == "" {
 		return ""
 	}
-	return fmt.Sprintf("%s%s", enclosingBrackets(square, t3xt), enclose(formatDelimiter, string(afn)))
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, t3xt), enclose(hash, string(afn)))
 }
 func (f AField) name() AFieldName {
 	return AFieldName(f.Name)
@@ -380,7 +465,7 @@ func (td ATypeDesc) lastClosedArrayBracketIndex() int {
 
 func (td ATypeDesc) localCustomTypeLink() string {
 	return fmt.Sprintf("%s%s", td.Prefix(), enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s%s",
-		td.TypeDefinition.ID(), ws, enclosingBrackets(square, typ3), enclose(formatDelimiter, td.Identifier()))))
+		td.TypeDefinition.ID(), ws, enclosingBrackets(square, typ3), enclose(hash, td.Identifier()))))
 }
 
 func (td ATypeDesc) externalCustomTypeLink() string {
@@ -388,13 +473,13 @@ func (td ATypeDesc) externalCustomTypeLink() string {
 	return fmt.Sprintf("%s%s%s%s",
 		// remove the asterisk to find the linked id, it's still displayed in the doc
 		td.Prefix(), enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s%s", td.PkgName(), ws,
-			enclosingBrackets(square, typ3), enclose(formatDelimiter, td.PkgName()))), dot,
+			enclosingBrackets(square, typ3), enclose(hash, td.PkgName()))), dot,
 		enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s%s", td.TypeDefinition.ID(), ws,
-			enclosingBrackets(square, typ3), enclose(formatDelimiter, td.Identifier()))))
+			enclosingBrackets(square, typ3), enclose(hash, td.Identifier()))))
 }
 
 func (td ATypeDesc) externalNonCustomTypeLink() string {
-	return fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, typ3), enclose(formatDelimiter, td.PkgName()), dot, enclosingBrackets(square, typ3), enclose(formatDelimiter, td.Identifier()))
+	return fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, typ3), enclose(hash, td.PkgName()), dot, enclosingBrackets(square, typ3), enclose(hash, td.Identifier()))
 }
 
 func (td ATypeDesc) builtInTypeLink() string {

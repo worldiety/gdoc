@@ -66,9 +66,9 @@ func (p APackage) readme() string {
 
 func (s AStruct) asciidocFormattedSigOpen() string {
 	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s",
-		enclosingBrackets(square, keyword), enclose(formatDelimiter, typ3), ws, enclosingDoubleBrackets(square, s.TypeDefinition.ID()),
-		enclosingBrackets(square, str1ng), enclose(formatDelimiter, s.Name), ws, enclosingBrackets(square, keyword),
-		enclose(formatDelimiter, structTitle), ws, operatorFormat("{"), preservedLinebreak)
+		enclosingBrackets(square, keyword), enclose(hash, typ3), ws, enclosingDoubleBrackets(square, s.TypeDefinition.ID()),
+		enclosingBrackets(square, str1ng), enclose(hash, s.Name), ws, enclosingBrackets(square, keyword),
+		enclose(hash, structTitle), ws, operatorFormat("{"), preservedLinebreak)
 }
 
 func (s AStruct) asciidocFormattedSigClose() string {
@@ -130,8 +130,8 @@ func (td ATypeDesc) typeString() string {
 func (fn AFunction) asciidocFormattedSignature() string {
 
 	return fmt.Sprintf("%s%s%s%s%s%s%s%s",
-		enclosingBrackets(square, keyword), enclose(formatDelimiter, funcTitle), ws, enclosingBrackets(square, nam3),
-		enclose(formatDelimiter, fn.Name), enclosingBrackets(round, fn.asciidocFormattedParameters()), ws, fn.asciidocFormattedResults())
+		enclosingBrackets(square, keyword), enclose(hash, funcTitle), ws, enclosingBrackets(square, nam3),
+		enclose(hash, fn.Name), enclosingBrackets(round, fn.asciidocFormattedParameters()), ws, fn.asciidocFormattedResults())
 }
 
 func (fn AFunction) asciidocFormattedParameters() string {
@@ -176,7 +176,7 @@ func (f AField) asciidocFormattedMapType() string {
 	srcTypeDef = strings.Replace(srcTypeDef, keyType.SrcTypeDefinition, formattedKeySrcTypeDef, 1)
 	srcTypeDef = strings.Replace(srcTypeDef, valueType.SrcTypeDefinition, formattedValueSrcTypeDef, 1)
 	srcTypeDef = strings.Replace(srcTypeDef, mapPrefix, fmt.Sprintf("%s%s", enclosingBrackets(square, keyword),
-		enclose(formatDelimiter, mapPrefix)), 1)
+		enclose(hash, mapPrefix)), 1)
 
 	return srcTypeDef
 }
