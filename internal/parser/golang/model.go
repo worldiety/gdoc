@@ -162,6 +162,9 @@ func (ac AComment) String() string {
 		} else if inList || inIndentedBlock {
 			// format full list
 			tmp := formatBlock(tmpList...)
+			if inList {
+				tmp = simpleLinebreak + tmp
+			}
 			original = ""
 			for _, s := range originalList {
 				original += s + simpleLinebreak
