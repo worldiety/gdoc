@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -83,4 +84,17 @@ func ModulePath(dir string) (string, error) {
 	}
 
 	return modfile.ModulePath(buf), nil
+}
+
+func SortMapValues[K comparable, V any](m map[K]V, less func(a, b V) bool) []V {
+	tmp := make([]V, 0, len(m))
+	for _, v := range m {
+		tmp = append(tmp, v)
+	}
+
+	sort.Slice(tmp, func(i, j int) bool {
+		return less(tmp[i], tmp[j])
+	})
+
+	return tmp
 }

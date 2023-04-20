@@ -14,6 +14,7 @@ var templateFiles embed.FS
 // All available templates have to be called by name, to use them.
 var Templates *template.Template // test comment
 var TestVar *api.Stereotype
+var TestVar2 api.Stereotype
 
 func init() {
 	tpl, err := template.ParseFS(templateFiles, "templates/*.tmpl")

@@ -357,9 +357,13 @@ func (v AVariables) String() string {
 	var s string
 	varMap := make(map[commentStatus]string)
 
-	for _, current := range v {
+	vars := SortMapValues(v, func(a, b AVariable) bool {
+		return a.Name < b.Name
+	})
+
+	for _, current := range vars {
 		if current.Comment == "" && current.Doc == "" {
-			varMap[uncommented] += fmt.Sprintf("%s%s", current.StringRaw(), simpleLinebreak)
+			varMap[uncommented] += fmt.Sprintf("%s", current.StringRaw())
 		} else {
 			varMap[commented] += current.String()
 		}
