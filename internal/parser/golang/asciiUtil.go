@@ -146,7 +146,7 @@ func nameFormat(s string) string {
 }
 func formatCaption(s string) string {
 	s = strings.Trim(strings.Replace(s, hash, "", -1), ws)
-	return bold(s)
+	return lvl(4) + ws + s
 }
 
 func formatBlock(tmpList ...string) string {

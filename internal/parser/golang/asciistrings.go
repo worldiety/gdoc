@@ -105,7 +105,7 @@ func (f AField) asciidocFormattedType() string {
 }
 
 func (v AVariable) asciidocFormattedType() string {
-	f := NewAField(*api.NewField(v.Name, v.Comment, v.TypeDesc, nil))
+	f := NewAField(*api.NewField(v.Name, v.Comment, v.Doc, v.TypeDesc, nil))
 	return f.asciidocFormattedType()
 }
 

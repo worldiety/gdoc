@@ -111,11 +111,14 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 }
 
 func handleComment(comment string, p *api.Package, m *api.Module) string {
+	if comment == "" {
+		return comment
+	}
 	replacementMap := map[string]string{}
 	// split word
 	for _, s := range strings.Split(comment, ws) {
 		// check for type from external package
-		if strings.Contains(s, dot) {
+		if isExternalPkg(s) {
 			parts := strings.Split(s, dot)
 			for path, extPkg := range m.Packages {
 				// check import paths for ext package name
@@ -133,6 +136,10 @@ func handleComment(comment string, p *api.Package, m *api.Module) string {
 		} else if t, ok := p.Types[s]; ok {
 			// if from current package
 			replacementMap[t.Identifier] = NewARefId(t).String()
+		} else if enlosedInSquareBrackets(s) {
+			if t, ok := p.Types[removeEnclosingSquaredBrackets(s)]; ok {
+				replacementMap[s] = NewARefId(t).String()
+			}
 		}
 	}
 
@@ -199,4 +206,26 @@ func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
 	td.TypeDefinition = api.NewRefID(importPath, td.Identifier())
 	td.Link = link
 	td.TypeOrigin = origin
+}
+
+func isExternalPkg(s string) bool {
+	if strings.Contains(s, dot) {
+		return true
+	}
+	return false
+}
+
+func enlosedInSquareBrackets(s string) bool {
+	if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
+		return true
+	}
+	return false
+}
+func removeEnclosingSquaredBrackets(s string) string {
+	var result string
+	if after, ok := strings.CutPrefix(s, "["); ok {
+		result, _ = strings.CutSuffix(after, "]")
+	}
+	return result
+
 }

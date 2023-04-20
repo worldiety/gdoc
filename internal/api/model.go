@@ -110,6 +110,7 @@ type Struct struct {
 	Comment            string
 	Name               string
 	Fields             []*Field
+	Methods            []*Method
 	WhiteSpaceInFields int
 }
 type Method struct {
@@ -126,18 +127,21 @@ type Function struct {
 }
 
 type Field struct {
-	TypeDesc     *TypeDesc
-	Name         string
-	Comment      string
+	TypeDesc *TypeDesc
+	Name     string
+	Comment  string
+	Doc      string
+	// ParentStruct test
 	ParentStruct *Struct // the struct, this field is a property of
 	Stereotypes  []Stereotype
 }
 
-func NewField(name, comment string, t *TypeDesc, parent *Struct) *Field {
+func NewField(name, comment string, doc string, t *TypeDesc, parent *Struct) *Field {
 	return &Field{
 		TypeDesc:     t,
 		Name:         name,
 		Comment:      comment,
+		Doc:          doc,
 		ParentStruct: parent,
 	}
 }
@@ -174,10 +178,11 @@ func withoutAsterisks(s string) string {
 	return strings.Replace(s, "*", "", -1)
 }
 
-func NewVariable(name, comment string, t *TypeDesc) *Variable {
+func NewVariable(name, comment, doc string, t *TypeDesc) *Variable {
 	return &Variable{
 		TypeDesc: t,
 		Name:     name,
+		Doc:      doc,
 		Comment:  comment,
 	}
 }

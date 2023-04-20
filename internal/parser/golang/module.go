@@ -97,7 +97,7 @@ func newPackage(pkg Package) *api.Package {
 					for _, ident := range t.Names {
 						if isExported(ident.Name) {
 							p.Vars[ident.Name] =
-								api.NewVariable(ident.Name, t.Comment.Text(),
+								api.NewVariable(ident.Name, t.Comment.Text(), value.Doc,
 									&api.TypeDesc{
 										SrcTypeDefinition: ast2str(t.Type),
 										Pointer:           isPointerType(t.Type),
@@ -182,7 +182,7 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 	for fnum, field := range src {
 		if len(field.Names) == 0 {
 			in := newField(field, nil, nil)
-			dst["__"+strconv.Itoa(fnum)] = api.NewField("", in.Comment,
+			dst["__"+strconv.Itoa(fnum)] = api.NewField("", in.Comment, in.Doc,
 				api.NewTypeDesc(
 					api.RefId{}, in.TypeDesc.SrcTypeDefinition, in.TypeDesc.Pointer, nil), nil)
 			dst["__"+strconv.Itoa(fnum)].Stereotypes = st
@@ -197,7 +197,7 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 				myName = "__" + strconv.Itoa(c)
 			}
 			dst[name.Name] =
-				api.NewField(myName, in.Comment,
+				api.NewField(myName, in.Comment, in.Doc,
 					api.NewTypeDesc(
 						api.RefId{}, in.TypeDesc.SrcTypeDefinition, in.TypeDesc.Pointer, nil), nil)
 			dst[name.Name].Stereotypes = st
@@ -220,7 +220,7 @@ func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
 		m.ValueType = api.NewTypeDesc(api.RefId{}, ast2str(mapType.Value), isPointerType(mapType.Value), m)
 	}
 
-	n := api.NewField(name, f.Doc.Text(), api.NewTypeDesc(api.RefId{}, ast2str(f.Type), isPointerType(f.Type), m), s)
+	n := api.NewField(name, f.Comment.Text(), f.Doc.Text(), api.NewTypeDesc(api.RefId{}, ast2str(f.Type), isPointerType(f.Type), m), s)
 	n.Stereotypes = []api.Stereotype{api.StereotypeProperty}
 
 	if ok, arrayType := isArrayField(f); ok {

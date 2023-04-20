@@ -3,6 +3,7 @@ package golang
 import (
 	"fmt"
 	"github.com/worldiety/gdoc/internal/api"
+	"golang.org/x/exp/slices"
 	"strings"
 )
 
@@ -93,9 +94,17 @@ func (p APackage) String() string {
 	return fmt.Sprintf("%s%s", p.title(), p.readme())
 }
 
+type ADoc struct {
+	AComment
+}
+
 type AComment struct {
 	Raw   string
 	Lines []string
+}
+
+func NewADoc(s string) ADoc {
+	return ADoc{NewAComment(s)}
 }
 
 func NewAComment(s string) AComment {
@@ -184,20 +193,6 @@ func (ac AComment) String() string {
 			// Caption
 			current = formatCaption(current)
 			result = strings.Replace(result, original, current, 1)
-		} else {
-			var tmp string
-			var edited bool
-			for _, s := range strings.Split(current, ws) {
-				if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
-					tmp = strings.Replace(current, "]", "", 1)
-					tmp = strings.Replace(tmp, "[", "", 1)
-					edited = true
-					break
-				}
-			}
-			if edited {
-				result = strings.Replace(result, original, tmp, 1)
-			}
 		}
 	}
 
@@ -266,12 +261,12 @@ func (s AStruct) String() string {
 	}
 	var fieldsString string
 	for _, f := range s.AFields() {
-		fieldsString += indent(f.String(), 2)
+		fieldsString += f.String()
 	}
 
 	if fieldsString == "" {
 		fieldsString = fmt.Sprintf("%s%s%s", enclosingBrackets(square, info),
-			enclose(hash, filteredFieldsNotice), preservedLinebreak)
+			enclose(hash, indent(filteredFieldsNotice, 2)), preservedLinebreak)
 	}
 
 	return fmt.Sprintf("%s%s", codeBlock(fmt.Sprintf("%s%s%s%s", s.asciidocFormattedSigOpen(),
@@ -328,8 +323,12 @@ func NewAVariable(v api.Variable) AVariable {
 }
 
 func (v AVariable) String() string {
-	return codeBlock(fmt.Sprintf("%s%s%s%s%s%s%s%s%s",
-		builtinFormat(varPrefix), ws, nameFormat(v.Name), ws, trimAllSuffixLinebreaks(v.asciidocFormattedType()), ws, passThrough(commentPrefix), ws, v.Comment))
+	var docString string
+	if v.Doc != "" {
+		docString = NewADoc(v.Doc).String() + preservedLinebreak
+	}
+	return codeBlock(fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s",
+		docString, builtinFormat(varPrefix), ws, nameFormat(v.Name), ws, trimAllSuffixLinebreaks(v.asciidocFormattedType()), ws, passThrough(commentPrefix), ws, v.Comment))
 }
 
 func (v AVariable) StringRaw() string {
@@ -347,27 +346,34 @@ func NewAVariables(vars map[string]*api.Variable) AVariables {
 	return nv
 }
 
+type commentStatus int
+
+const (
+	uncommented commentStatus = iota
+	commented
+)
+
 func (v AVariables) String() string {
 	var s string
-	varMap := make(map[string]string)
+	varMap := make(map[commentStatus]string)
 
 	for _, current := range v {
-		if current.Comment == "" {
-			varMap["noComment"] += fmt.Sprintf("%s%s", current.StringRaw(), simpleLinebreak)
+		if current.Comment == "" && current.Doc == "" {
+			varMap[uncommented] += fmt.Sprintf("%s%s", current.StringRaw(), simpleLinebreak)
 		} else {
-			varMap["commented"] += fmt.Sprintf("%s%s", current.String(), simpleLinebreak)
+			varMap[commented] += current.String()
 		}
 	}
 
 	var noCommentVars, commentedVars string
-	if varMap["noComment"] != "" {
-		noCommentVars = codeBlock(varMap["noComment"])
+	if varMap[uncommented] != "" {
+		noCommentVars = codeBlock(varMap[uncommented])
 	}
-	if varMap["commented"] != "" {
-		commentedVars = varMap["commented"]
+	if varMap[commented] != "" {
+		commentedVars = varMap[commented]
 	}
 	s = fmt.Sprintf("%s%s%s", noCommentVars, simpleLinebreak, commentedVars)
-	s = strings.Trim(s, "\n")
+	s = strings.Trim(s, simpleLinebreak)
 	return fmt.Sprintf("%s%s%s", v.title(), simpleLinebreak, s)
 }
 
@@ -398,12 +404,33 @@ func (f AField) String() string {
 	if f.Name != "" {
 		whiteSpace = f.asciidocWhiteSpaceBetween()
 	}
-	s := fmt.Sprintf("%s%s%s%s",
-		f.comment().String(),
-		f.name().String(),
+	var comment, doc string
+	if f.Comment != "" {
+		comment = fmt.Sprintf("%s%s%s%s", ws, commentPrefix, ws, f.comment().String())
+	}
+	if f.Doc != "" {
+		if slices.Contains(f.Stereotypes, api.StereotypeProperty) {
+			doc = indent(fmt.Sprintf("%s%s%s%s", commentPrefix, ws, f.doc().String(), preservedLinebreak), 2)
+		}
+	}
+
+	var nameString string
+	if slices.Contains(f.Stereotypes, api.StereotypeProperty) {
+		nameString = indent(f.name().String(), 2)
+	} else {
+		nameString = f.name().String()
+	}
+	s := fmt.Sprintf("%s%s%s%s%s",
+		doc,
+		nameString,
 		whiteSpace,
-		f.asciidocFormattedType(),
+		trimAllSuffixLinebreaks(f.asciidocFormattedType()),
+		comment,
 	)
+
+	if slices.Contains(f.Stereotypes, api.StereotypeProperty) {
+		s += preservedLinebreak
+	}
 	return s
 }
 
@@ -413,6 +440,10 @@ func (f AField) TypeDescription() ATypeDesc {
 
 func (f AField) comment() AComment {
 	return NewAComment(f.Comment)
+}
+
+func (f AField) doc() ADoc {
+	return NewADoc(f.Doc)
 }
 
 type AFieldName string

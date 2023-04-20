@@ -3,6 +3,7 @@ package asciidoc
 import (
 	"embed"
 	"fmt"
+	"github.com/worldiety/gdoc/internal/api"
 	"text/template"
 )
 
@@ -12,6 +13,7 @@ var templateFiles embed.FS
 // Templates is globally available and binds all template files in the asciidoc/templates directory.
 // All available templates have to be called by name, to use them.
 var Templates *template.Template // test comment
+var TestVar *api.Stereotype
 
 func init() {
 	tpl, err := template.ParseFS(templateFiles, "templates/*.tmpl")
