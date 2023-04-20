@@ -117,7 +117,6 @@ func newPackage(pkg Package) *api.Package {
 				p.Structs[value.Name] = newStruct(value)
 			}
 		}
-
 	}
 
 	return p
@@ -150,7 +149,18 @@ func newStruct(value *doc.Type) *api.Struct {
 
 	myStruct.Fields = f
 
+	for _, method := range value.Methods {
+		myStruct.Methods = append(myStruct.Methods, newMethod(method, myStruct))
+	}
+
 	return myStruct
+}
+
+func newMethod(docFunc *doc.Func, recv *api.Struct) *api.Method {
+	return &api.Method{
+		Function:     newFunc(docFunc),
+		ReceiverName: recv,
+	}
 }
 
 func newFunc(docFunc *doc.Func) *api.Function {

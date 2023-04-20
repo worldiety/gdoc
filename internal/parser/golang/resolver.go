@@ -136,7 +136,7 @@ func handleComment(comment string, p *api.Package, m *api.Module) string {
 		} else if t, ok := p.Types[s]; ok {
 			// if from current package
 			replacementMap[t.Identifier] = NewARefId(t).String()
-		} else if enlosedInSquareBrackets(s) {
+		} else if enclosedInSquareBrackets(s) {
 			if t, ok := p.Types[removeEnclosingSquaredBrackets(s)]; ok {
 				replacementMap[s] = NewARefId(t).String()
 			}
@@ -215,7 +215,7 @@ func isExternalPkg(s string) bool {
 	return false
 }
 
-func enlosedInSquareBrackets(s string) bool {
+func enclosedInSquareBrackets(s string) bool {
 	if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
 		return true
 	}

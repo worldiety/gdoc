@@ -111,12 +111,14 @@ type Struct struct {
 	Name               string
 	Fields             []*Field
 	Methods            []*Method
+	Constructor        Function
 	WhiteSpaceInFields int
 }
 type Method struct {
-	Function
-	Receiver *Struct
+	*Function
+	ReceiverName *Struct
 }
+
 type Function struct {
 	TypeDefinition RefId
 	Name           string
