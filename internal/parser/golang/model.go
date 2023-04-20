@@ -346,6 +346,12 @@ func NewAVariables(vars map[string]*api.Variable) AVariables {
 	return nv
 }
 
+func (v AVariables) sort() []AVariable {
+	return SortMapValues(v, func(a, b AVariable) bool {
+		return a.Name < b.Name
+	})
+}
+
 type commentStatus int
 
 const (
@@ -357,11 +363,7 @@ func (v AVariables) String() string {
 	var s string
 	varMap := make(map[commentStatus]string)
 
-	vars := SortMapValues(v, func(a, b AVariable) bool {
-		return a.Name < b.Name
-	})
-
-	for _, current := range vars {
+	for _, current := range v.sort() {
 		if current.Comment == "" && current.Doc == "" {
 			varMap[uncommented] += fmt.Sprintf("%s", current.StringRaw())
 		} else {
