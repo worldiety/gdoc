@@ -176,62 +176,29 @@ func (ac AComment) String() string {
 			current = ""
 		}
 		original = current
-		if startsWithEitherPrefix(current, ws, tab) {
-			if strings.HasPrefix(strings.Trim(current, ws), hyphen) {
+		if isIndentedBlock(current) {
+			if inList = isList(current); inList {
 				// is list -> change godoc list marker (-) for asciidoc list marker (*)
 				originalList = append(originalList, current)
 				current = strings.Replace(current, hyphen, asterisk, 1)
 				tmpList = append(tmpList, current)
-				inList = true
 				continue
 			} else {
-				var count int
 				if !inIndentedBlock {
 					originalList = []string{}
 					tmpList = []string{}
 				}
 				originalList = append(originalList, original)
-				for _, r := range current {
-					if string(r) == tab {
-						count += 4
-						continue
-					}
-					if string(r) == ws {
-						count++
-						continue
-					}
-					current = trimAllPrefixWSAndTabs(current)
-					for i := 0; i < count; i++ {
-						current = nbsp + current
-					}
-					current += plusSuffix
-					tmpList = append(tmpList, current)
-					inIndentedBlock = true
-					break
-				}
+				tmpList, inIndentedBlock = handleIndentedBlock(current, tmpList)
 			}
 		} else if inList || inIndentedBlock {
-			// format full list
-			tmp := formatBlock(tmpList...)
-			if inList {
-				tmp = simpleLinebreak + tmp
-			}
-			original = ""
-			for _, s := range originalList {
-				original += s + simpleLinebreak
-			}
-
-			if inIndentedBlock {
-				tmp = mono + enclose(hash, trimAllSuffixLinebreaks(tmp)) + plusSuffix
-			}
-			if i == len(ac.Lines) {
-				original = trimAllSuffixLinebreaks(original)
-			}
+			var tmp string
+			original, tmp = handleBlocksAndLists(inList, inIndentedBlock, originalList, tmpList, original, len(ac.Lines) == i)
 			result = strings.Replace(result, original, tmp, 1)
 			inList = false
 			inIndentedBlock = false
 			i = i - 1
-		} else if strings.HasPrefix(current, hash) {
+		} else if isCaption(current) {
 			// Caption
 			current = formatCaption(current)
 			result = strings.Replace(result, original, current, 1)

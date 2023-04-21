@@ -214,3 +214,61 @@ func indent(s string, n int) string {
 	}
 	return s
 }
+
+func isIndentedBlock(s string) bool {
+	return startsWithEitherPrefix(s, ws, tab)
+}
+
+func isList(s string) bool {
+	return strings.HasPrefix(strings.Trim(s, ws), hyphen)
+}
+
+func isCaption(s string) bool {
+	return strings.HasPrefix(s, hash)
+}
+
+func handleBlocksAndLists(
+	inList, inIndentedBlock bool,
+	originalList, tmpList []string,
+	original string, last bool) (string, string) {
+	// format full list
+	tmp := formatBlock(tmpList...)
+	if inList {
+		tmp = simpleLinebreak + tmp
+	}
+	original = ""
+	for _, s := range originalList {
+		original += s + simpleLinebreak
+	}
+
+	if inIndentedBlock {
+		tmp = mono + enclose(hash, trimAllSuffixLinebreaks(tmp)) + plusSuffix
+	}
+	if last {
+		original = trimAllSuffixLinebreaks(original)
+	}
+
+	return original, tmp
+}
+
+func handleIndentedBlock(current string, tmpList []string) ([]string, bool) {
+	var count int
+	for _, r := range current {
+		if string(r) == tab {
+			count += 4
+			continue
+		}
+		if string(r) == ws {
+			count++
+			continue
+		}
+		current = trimAllPrefixWSAndTabs(current)
+		for i := 0; i < count; i++ {
+			current = nbsp + current
+		}
+		current += plusSuffix
+		tmpList = append(tmpList, current)
+		break
+	}
+	return tmpList, count > 0
+}
