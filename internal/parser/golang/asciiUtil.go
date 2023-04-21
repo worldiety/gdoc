@@ -49,8 +49,7 @@ func addComma(s string) string {
 
 func formattedComment(s string) string {
 
-	return fmt.Sprintf("%s%s%s%s", simpleLinebreak, enclosingBrackets(square, comment),
-		enclose(hash, strings.Trim(s, simpleLinebreak)), preservedLinebreak)
+	return fmt.Sprintf("%s%s%s", simpleLinebreak, strings.Trim(s, simpleLinebreak), preservedLinebreak)
 }
 
 func operatorFormat(s string) string {

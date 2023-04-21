@@ -28,7 +28,6 @@ const (
 	nam3             = "name"
 	info             = "information"
 	code             = "code"
-	comment          = "comment"
 	funcTitle        = "func"
 	structTitle      = "struct"
 	mapPrefix        = "map"
