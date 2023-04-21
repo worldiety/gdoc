@@ -144,6 +144,10 @@ func typeFormat(s string) string {
 func nameFormat(s string) string {
 	return fmt.Sprintf("%s%s", enclosingBrackets(square, nam3), enclose(hash, s))
 }
+
+func variableFormat(s string) string {
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, variable), enclose(hash, s))
+}
 func formatCaption(s string) string {
 	s = strings.Trim(strings.Replace(s, hash, "", -1), ws)
 	return lvl(4) + ws + s

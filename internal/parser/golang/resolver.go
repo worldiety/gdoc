@@ -47,6 +47,7 @@ func addCommentLinks(m *api.Module) {
 		}
 		for _, v := range p.Vars {
 			v.Comment = handleComment(v.Comment, p, m)
+			v.Doc = handleComment(v.Doc, p, m)
 		}
 		for _, c := range p.Consts {
 			c.Comment = handleComment(c.Comment, p, m)
@@ -118,7 +119,7 @@ func handleComment(comment string, p *api.Package, m *api.Module) string {
 	// split word
 	for _, s := range strings.Split(comment, ws) {
 		// check for type from external package
-		if isExternalPkg(s) {
+		if externalPkg(s) {
 			parts := strings.Split(s, dot)
 			for path, extPkg := range m.Packages {
 				// check import paths for ext package name
@@ -185,7 +186,7 @@ func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
 	var origin api.TypeOrigin
 
 	// from current package or built-in
-	if include, _ := td.IncludesPkg(); !include {
+	if currentPackageOrBuiltIn(td) {
 		if p := lp.pkgs[pName]; p != nil {
 			if t := p.Types.Scope().Lookup(td.Identifier()); t != nil {
 				importPath = p.PkgPath
@@ -195,7 +196,7 @@ func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
 		}
 	} else {
 		// from other package
-		if p := lp.pkgs[td.PkgName()]; p != nil {
+		if ok, p := externalCustomPkg(*td, *lp); ok {
 			importPath = p.PkgPath
 			link = true
 			origin = api.ExternalCustom
@@ -208,11 +209,25 @@ func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
 	td.TypeOrigin = origin
 }
 
-func isExternalPkg(s string) bool {
+func externalPkg(s string) bool {
 	if strings.Contains(s, dot) {
 		return true
 	}
 	return false
+}
+
+func currentPackageOrBuiltIn(td *api.TypeDesc) bool {
+	if include, _ := td.IncludesPkg(); !include {
+		return true
+	}
+	return false
+}
+
+func externalCustomPkg(td api.TypeDesc, lp loadedPackages) (bool, *packages.Package) {
+	if p := lp.pkgs[td.PkgName()]; p != nil {
+		return true, p
+	}
+	return false, nil
 }
 
 func enclosedInSquareBrackets(s string) bool {
