@@ -35,7 +35,7 @@ const (
 	angle
 )
 
-func title(prefix, name, anchor string, n int) string {
+func title(prefix, anchor, name string, n int) string {
 	if prefix != "" {
 		prefix = enclose(ws, prefix)
 	}
@@ -143,6 +143,10 @@ func typeFormat(s string) string {
 
 func nameFormat(s string) string {
 	return fmt.Sprintf("%s%s", enclosingBrackets(square, nam3), enclose(hash, s))
+}
+
+func keywordFormat(s string) string {
+	return fmt.Sprintf("%s%s", enclosingBrackets(square, keyword), enclose(hash, s))
 }
 
 func variableFormat(s string) string {

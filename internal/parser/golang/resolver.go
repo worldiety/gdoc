@@ -108,7 +108,14 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 		for _, f := range s.Fields {
 			handleField(f, p, lp)
 		}
+		for _, m := range s.Methods {
+			handleMethod(m, p, lp)
+		}
 	}
+}
+
+func handleMethod(m *api.Method, p *api.Package, lp *loadedPackages) {
+	typeDescInfo(p.Name, m.Recv.TypeDesc, lp)
 }
 
 func handleComment(comment string, p *api.Package, m *api.Module) string {

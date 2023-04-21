@@ -29,12 +29,26 @@ func (p APackage) String() string {
 }
 
 func (fn AFunction) String() string {
-	return fmt.Sprintf("%s%s%s%s%s", fn.title(), preservedLinebreak,
+	return fmt.Sprintf("%s%s%s%s%s", bold(fn.name()), preservedLinebreak,
 		codeBlock(fn.asciidocFormattedSignature()), simpleLinebreak, fn.comment().String())
 }
 
 func (af AFunctions) String() string {
 	return af.title()
+}
+
+func (m AMethod) String() string {
+
+	return fmt.Sprintf("%s%s%s%s%s", bold(m.name()), preservedLinebreak,
+		codeBlock(m.asciidocFormattedSignature()), simpleLinebreak, NewAFunction(*m.Function).comment().String())
+}
+
+func (ms AMethods) String() string {
+	var methodString string
+	for _, m := range ms.sort() {
+		methodString += m.String()
+	}
+	return methodString
 }
 
 func (v AVariable) String() string {
@@ -135,8 +149,8 @@ func (s AStruct) String() string {
 			enclose(hash, indent(filteredFieldsNotice, 2)), preservedLinebreak)
 	}
 
-	return fmt.Sprintf("%s%s", codeBlock(fmt.Sprintf("%s%s%s%s", s.asciidocFormattedSigOpen(),
-		fieldsString, s.asciidocFormattedSigClose(), preservedLinebreak)), commentString)
+	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s", s.title(), preservedLinebreak, codeBlock(fmt.Sprintf("%s%s%s%s", s.asciidocFormattedSigOpen(),
+		fieldsString, s.asciidocFormattedSigClose(), preservedLinebreak)), commentString, s.methods().String(), simpleLinebreak, simpleLinebreak, "'''", simpleLinebreak)
 }
 
 func (afc AFunctionComment) String() string {

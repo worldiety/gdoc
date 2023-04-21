@@ -54,7 +54,7 @@ func (p APackage) AnchorID() string {
 }
 
 func (p APackage) title() string {
-	return title(packageTitlePrefix, p.AnchorID(), p.Name, 2)
+	return title(keywordFormat(packageTitlePrefix), p.AnchorID(), nameFormat(p.Name), 2)
 }
 
 func (p APackage) readme() string {
@@ -132,6 +132,11 @@ func (fn AFunction) asciidocFormattedSignature() string {
 	return fmt.Sprintf("%s%s%s%s%s%s%s%s",
 		enclosingBrackets(square, keyword), enclose(hash, funcTitle), ws, enclosingBrackets(square, nam3),
 		enclose(hash, fn.Name), enclosingBrackets(round, fn.asciidocFormattedParameters()), ws, fn.asciidocFormattedResults())
+}
+
+func (m AMethod) asciidocFormattedSignature() string {
+	return fmt.Sprintf("%s%s%s%s",
+		m.name(), enclosingBrackets(round, m.function().asciidocFormattedParameters()), ws, m.function().asciidocFormattedResults())
 }
 
 func (fn AFunction) asciidocFormattedParameters() string {

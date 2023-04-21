@@ -11,6 +11,7 @@ const (
 	moduleTitlePrefix    = "Module"
 	packageTitlePrefix   = "Package"
 	structsTitlePrefix   = "Structs"
+	structTitlePrefix    = "Struct"
 	funcsTitlePrefix     = "Functions"
 	variablesTitlePrefix = "Variables"
 	funcTitlePrefix      = "func"
@@ -115,8 +116,16 @@ type AStruct struct {
 	api.Struct
 }
 
+func (s AStruct) title() string {
+	return bold(keywordFormat(structTitlePrefix), ws, nameFormat(s.Name))
+}
+
 func NewAStruct(structVal api.Struct) AStruct {
 	return AStruct{Struct: structVal}
+}
+
+func (s AStruct) methods() AMethods {
+	return NewAMethods(s.Methods)
 }
 
 type AStructs map[string]AStruct
@@ -141,21 +150,11 @@ type AFunction struct {
 	api.Function
 }
 
-type AFunctions map[string]AFunction
-
 func (af AFunctions) title() string {
 	return title(funcsTitlePrefix, "", "", 3)
 }
 func NewAFunction(functionVal api.Function) AFunction {
 	return AFunction{Function: functionVal}
-}
-
-func NewAFunctions(funcs map[string]*api.Function) AFunctions {
-	aFunctions := map[string]AFunction{}
-	for _, fn := range funcs {
-		aFunctions[fn.Name] = NewAFunction(*fn)
-	}
-	return aFunctions
 }
 
 func (fn AFunction) comment() AFunctionComment {
@@ -166,9 +165,70 @@ func (fn AFunction) RefID() ARefId {
 	return NewARefId(fn.TypeDefinition)
 }
 
-func (fn AFunction) title() string {
-	return bold(fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, keyword),
-		enclose(hash, funcTitlePrefix), ws, fn.RefID().AnchorID(), fn.RefID().Identifier))
+func (fn AFunction) name() string {
+	return name(fn, nil)
+}
+
+func (m AMethod) function() AFunction {
+	return NewAFunction(*m.Function)
+}
+
+func (m AMethod) recv() *ARecv {
+	r := NewARecv(m.Recv)
+	return &r
+}
+func (m AMethod) name() string {
+	return name(m.function(), m.recv())
+}
+
+func (r ARecv) String() string {
+	return enclosingBrackets(round, fmt.Sprintf("%s%s%s", variableFormat(r.Name), ws, typeFormat(r.TypeString)))
+}
+
+func name(fn AFunction, recv *ARecv) string {
+	if recv == nil {
+		return fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, keyword),
+			enclose(hash, funcTitlePrefix), ws, fn.RefID().AnchorID(), nameFormat(fn.RefID().Identifier))
+	} else {
+		return fmt.Sprintf("%s%s%s%s%s%s", enclosingBrackets(square, keyword),
+			enclose(hash, funcTitlePrefix), ws, recv.String(), ws, nameFormat(fn.Name))
+	}
+}
+
+type AFunctions map[string]AFunction
+
+func NewAFunctions(funcs map[string]*api.Function) AFunctions {
+	aFunctions := map[string]AFunction{}
+	for _, fn := range funcs {
+		aFunctions[fn.Name] = NewAFunction(*fn)
+	}
+	return aFunctions
+}
+
+type AMethod struct {
+	api.Method
+}
+
+func NewAMethod(methodVal api.Method) AMethod {
+	return AMethod{methodVal}
+}
+
+type ARecv struct {
+	*api.Recv
+}
+
+func NewARecv(s *api.Recv) ARecv {
+	return ARecv{s}
+}
+
+type AMethods map[string]AMethod
+
+func NewAMethods(methods []*api.Method) AMethods {
+	aMethods := map[string]AMethod{}
+	for _, m := range methods {
+		aMethods[m.Name] = NewAMethod(*m)
+	}
+	return aMethods
 }
 
 type AVariable struct {
@@ -203,6 +263,12 @@ func NewAVariables(vars map[string]*api.Variable) AVariables {
 
 func (v AVariables) sort() []AVariable {
 	return SortMapValues(v, func(a, b AVariable) bool {
+		return a.Name < b.Name
+	})
+}
+
+func (ms AMethods) sort() []AMethod {
+	return SortMapValues(ms, func(a, b AMethod) bool {
 		return a.Name < b.Name
 	})
 }

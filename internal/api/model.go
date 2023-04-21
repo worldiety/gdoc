@@ -116,7 +116,21 @@ type Struct struct {
 }
 type Method struct {
 	*Function
-	ReceiverName *Struct
+	Recv *Recv
+}
+
+type Recv struct {
+	*Field
+	Name       string
+	TypeString string
+}
+
+func NewRecv(f *Field, name, ts string) *Recv {
+	return &Recv{
+		Field:      f,
+		Name:       name,
+		TypeString: ts,
+	}
 }
 
 type Function struct {

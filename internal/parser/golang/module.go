@@ -150,16 +150,17 @@ func newStruct(value *doc.Type) *api.Struct {
 	myStruct.Fields = f
 
 	for _, method := range value.Methods {
-		myStruct.Methods = append(myStruct.Methods, newMethod(method, myStruct))
+		myStruct.Methods = append(myStruct.Methods, newMethod(method, newField(method.Decl.Recv.List[0], myStruct, method.Decl.Recv.List[0].Names[0])))
 	}
 
 	return myStruct
 }
 
-func newMethod(docFunc *doc.Func, recv *api.Struct) *api.Method {
+func newMethod(docFunc *doc.Func, recv *api.Field) *api.Method {
+
 	return &api.Method{
-		Function:     newFunc(docFunc),
-		ReceiverName: recv,
+		Function: newFunc(docFunc),
+		Recv:     api.NewRecv(recv, docFunc.Decl.Recv.List[0].Names[0].Name, docFunc.Recv),
 	}
 }
 
