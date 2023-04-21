@@ -21,7 +21,7 @@ func (m AModule) String() string {
 }
 
 func (id APackageRefID) String() string {
-	return fmt.Sprintf("%s", enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s", id.Identifier, ws, id.Identifier)))
+	return enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s", id.Identifier, ws, id.Identifier))
 }
 
 func (p APackage) String() string {
@@ -52,7 +52,7 @@ func (v AVariables) String() string {
 
 	for _, current := range v.sort() {
 		if current.Comment == "" && current.Doc == "" {
-			varMap[uncommented] += fmt.Sprintf("%s", current.StringRaw())
+			varMap[uncommented] += current.StringRaw()
 		} else {
 			varMap[commented] += current.String()
 		}
@@ -113,7 +113,7 @@ func (m AMapType) String() string {
 	return fmt.Sprintf("AMapType{MapType: %v}", m.MapType)
 }
 func (r ARefId) String() string {
-	return fmt.Sprintf("%s", enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s", r.ID(), ws, r.Identifier)))
+	return enclosingDoubleBrackets(angle, fmt.Sprintf("%s,%s%s", r.ID(), ws, r.Identifier))
 }
 
 func (as AStructs) String() string {

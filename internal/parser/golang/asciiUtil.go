@@ -37,7 +37,7 @@ const (
 
 func title(prefix, name, anchor string, n int) string {
 	if prefix != "" {
-		prefix = fmt.Sprintf("%s", enclose(ws, prefix))
+		prefix = enclose(ws, prefix)
 	}
 
 	return fmt.Sprintf("%s%s%s%s%s", simpleLinebreak, lvl(n), prefix, anchor, name)

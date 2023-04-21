@@ -72,7 +72,7 @@ func (s AStruct) asciidocFormattedSigOpen() string {
 }
 
 func (s AStruct) asciidocFormattedSigClose() string {
-	return fmt.Sprintf("%s", operatorFormat("}"))
+	return operatorFormat("}")
 }
 
 // AsciidocWhiteSpaceBetween adds non-breaking spaces between a fields name and type, to correctly format code blocks in monospace font
@@ -138,7 +138,7 @@ func (fn AFunction) asciidocFormattedParameters() string {
 	var s string
 	var c int
 	for _, p := range fn.Parameters {
-		s += fmt.Sprintf("%s", NewAField(*p).String())
+		s += NewAField(*p).String()
 		if c < len(fn.Parameters)-1 {
 			s = addComma(s)
 		}
@@ -152,7 +152,7 @@ func (fn AFunction) asciidocFormattedResults() string {
 	var s string
 	var c int
 	for _, r := range fn.Results {
-		results += fmt.Sprintf("%s", NewAField(*r).String())
+		results += NewAField(*r).String()
 		if c < len(fn.Results)-1 {
 			results = addComma(results)
 		}

@@ -108,7 +108,7 @@ func NewARefId(refId api.RefId) ARefId {
 }
 
 func (r ARefId) AnchorID() string {
-	return enclosingDoubleBrackets(square, fmt.Sprintf("%s", r.ID()))
+	return enclosingDoubleBrackets(square, r.ID())
 }
 
 type AStruct struct {
@@ -167,8 +167,8 @@ func (fn AFunction) RefID() ARefId {
 }
 
 func (fn AFunction) title() string {
-	return fmt.Sprintf("%s", bold(fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, keyword),
-		enclose(hash, funcTitlePrefix), ws, fn.RefID().AnchorID(), fn.RefID().Identifier)))
+	return bold(fmt.Sprintf("%s%s%s%s%s", enclosingBrackets(square, keyword),
+		enclose(hash, funcTitlePrefix), ws, fn.RefID().AnchorID(), fn.RefID().Identifier))
 }
 
 type AVariable struct {
@@ -176,7 +176,7 @@ type AVariable struct {
 }
 
 func (v AVariable) AnchorID() string {
-	return enclosingDoubleBrackets(square, fmt.Sprintf("%s", v.TypeDesc.TypeDefinition.ID()))
+	return enclosingDoubleBrackets(square, v.TypeDesc.TypeDefinition.ID())
 }
 
 func (v AVariable) name() AFieldName {
