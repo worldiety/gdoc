@@ -160,6 +160,30 @@ func (afc AFunctionComment) String() string {
 	return ""
 }
 
+func (generics AGenerics) String() string {
+	var s string
+	var sep = comma + ws
+	typeMap := make(map[string][]string, 0)
+	for _, g := range generics {
+		if typeMap[g.TypeDesc.SrcTypeDefinition] == nil {
+			typeMap[g.TypeDesc.SrcTypeDefinition] = make([]string, 0)
+		}
+		typeMap[g.TypeDesc.SrcTypeDefinition] = append(typeMap[g.TypeDesc.SrcTypeDefinition], g.Name)
+	}
+	for ts, nameList := range typeMap {
+		for _, name := range nameList {
+			s += nameFormat(name) + sep
+		}
+		s = strings.TrimSuffix(s, sep)
+		s += ws + typeFormat(ts) + sep
+	}
+	s = strings.TrimSuffix(s, sep)
+	if s != "" {
+		s = enclosingBrackets(square, s)
+	}
+	return s
+}
+
 func (ac AComment) String() string {
 	var original, current string
 	var originalList, tmpList []string

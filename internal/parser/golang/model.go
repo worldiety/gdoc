@@ -57,6 +57,10 @@ func (p APackage) RefID() APackageRefID {
 	return NewAPackageRefID(p.PackageDefinition)
 }
 
+func (AComment) name() {
+
+}
+
 // APackage is a decorator struct for the api.Package struct
 type APackage struct {
 	api.Package
@@ -144,6 +148,20 @@ func NewAStructs(domainStructs map[string]*api.Struct) AStructs {
 
 func (s AStruct) comment() AComment {
 	return NewAComment(s.Comment)
+}
+
+func (s AStruct) generics() AGenerics {
+	return NewAGenerics(s.Generics)
+}
+
+type AGenerics []AField
+
+func NewAGenerics(generics api.Generics) AGenerics {
+	var result []AField
+	for _, field := range generics {
+		result = append(result, NewAField(*field))
+	}
+	return result
 }
 
 type AFunction struct {

@@ -132,12 +132,22 @@ func newStruct(value *doc.Type) *api.Struct {
 	for _, spec := range value.Decl.Specs {
 		switch s := spec.(type) {
 		case *ast.TypeSpec:
-			if structType, ok := s.Type.(*ast.StructType); ok {
+			// Generics
+			if s.TypeParams != nil && s.TypeParams.List != nil {
+				for _, p := range s.TypeParams.List {
+					for _, n := range p.Names {
+						nf := newField(p, nil, n.Name)
+						nf.Stereotypes = []api.Stereotype{api.StereoTypeGeneric}
+						myStruct.Generics = append(myStruct.Generics, nf)
 
+					}
+				}
+			}
+			if structType, ok := s.Type.(*ast.StructType); ok {
 				for _, field := range structType.Fields.List {
 					for _, ident := range field.Names {
 						if isExported(ident.Name) {
-							field := newField(field, myStruct, ident)
+							field := newField(field, myStruct, ident.Name)
 							field.TypeDesc.Linebreak = true
 							f = append(f, field)
 						}
@@ -150,7 +160,15 @@ func newStruct(value *doc.Type) *api.Struct {
 	myStruct.Fields = f
 
 	for _, method := range value.Methods {
-		myStruct.Methods = append(myStruct.Methods, newMethod(method, newField(method.Decl.Recv.List[0], myStruct, method.Decl.Recv.List[0].Names[0])))
+		if isExported(method.Name) {
+			if method.Decl.Recv.List != nil {
+				var methodName string
+				if len(method.Decl.Recv.List[0].Names) > 0 {
+					methodName = method.Decl.Recv.List[0].Names[0].Name
+				}
+				myStruct.Methods = append(myStruct.Methods, newMethod(method, newField(method.Decl.Recv.List[0], myStruct, methodName)))
+			}
+		}
 	}
 
 	return myStruct
@@ -192,7 +210,7 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 	c := 0
 	for fnum, field := range src {
 		if len(field.Names) == 0 {
-			in := newField(field, nil, nil)
+			in := newField(field, nil, "")
 			dst["__"+strconv.Itoa(fnum)] = api.NewField("", in.Comment, in.Doc,
 				api.NewTypeDesc(
 					api.RefId{}, in.TypeDesc.SrcTypeDefinition, in.TypeDesc.Pointer, nil), nil)
@@ -202,7 +220,7 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 
 		for _, name := range field.Names {
 			c++
-			in := newField(field, nil, name)
+			in := newField(field, nil, name.Name)
 			myName := in.Name
 			if myName == "" {
 				myName = "__" + strconv.Itoa(c)
@@ -216,13 +234,10 @@ func insertParams(dst map[string]*api.Field, src []*ast.Field, st ...api.Stereot
 	}
 }
 
-func newField(f *ast.Field, s *api.Struct, id *ast.Ident) *api.Field {
-	var name string
-	if id != nil {
-		name = id.Name
-		if s != nil && len([]rune(name)) > s.WhiteSpaceInFields {
-			s.WhiteSpaceInFields = len([]rune(name))
-		}
+func newField(f *ast.Field, s *api.Struct, name string) *api.Field {
+
+	if s != nil && len([]rune(name)) > s.WhiteSpaceInFields {
+		s.WhiteSpaceInFields = len([]rune(name))
 	}
 
 	m := &api.MapType{}
@@ -381,6 +396,29 @@ func ast2str(n ast.Node) string {
 
 		s = strings.TrimSuffix(s, " ,")
 		return s
+	case *ast.IndexListExpr:
+		var s string
+		sep := comma + ws
+		switch x := t.X.(type) {
+		case *ast.Ident:
+			switch gt := x.Obj.Decl.(type) {
+			case *ast.TypeSpec:
+				if len(gt.TypeParams.List) > 0 {
+					for _, tp := range gt.TypeParams.List {
+						for _, id := range tp.Names {
+							s += id.Name + sep
+						}
+						s = strings.TrimSuffix(s, sep)
+						s += ws + ast2str(tp.Type)
+						s += sep
+					}
+				}
+			}
+		}
+
+		s = enclosingBrackets(square, strings.TrimSuffix(s, sep))
+		return s
+
 	default:
 		panic(fmt.Errorf("implement me %T", t))
 	}

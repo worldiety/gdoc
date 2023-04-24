@@ -64,9 +64,12 @@ func (p APackage) readme() string {
 }
 
 func (s AStruct) asciidocFormattedSigOpen() string {
-	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s",
+	if s.Name == "List" {
+		print("hit")
+	}
+	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s",
 		enclosingBrackets(square, keyword), enclose(hash, typ3), ws, enclosingDoubleBrackets(square, s.TypeDefinition.ID()),
-		enclosingBrackets(square, str1ng), enclose(hash, s.Name), ws, enclosingBrackets(square, keyword),
+		enclosingBrackets(square, str1ng), enclose(hash, s.Name), s.generics().String(), ws, enclosingBrackets(square, keyword),
 		enclose(hash, structTitle), ws, operatorFormat("{"), preservedLinebreak)
 }
 

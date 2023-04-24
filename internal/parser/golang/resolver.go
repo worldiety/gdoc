@@ -93,6 +93,7 @@ func addConstantInfo(p *api.Package, path string) {
 	}
 }
 func addFunctionInfo(p *api.Package, lp *loadedPackages, path string) {
+
 	for id, function := range p.Functions {
 		function.TypeDefinition = api.NewRefID(path, id)
 		p.Types[function.Name] = function.TypeDefinition

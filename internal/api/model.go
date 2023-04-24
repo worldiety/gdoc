@@ -61,6 +61,7 @@ const (
 	StereotypeParameterIn     = "in"
 	StereotypeParameterOut    = "out"
 	StereotypeParameterResult = "result"
+	StereoTypeGeneric         = "generic"
 )
 
 type ImportPath = string
@@ -83,14 +84,14 @@ type Module struct {
 	Packages map[ImportPath]*Package
 }
 
-type List[T any] struct {
+type List[T, X any, V Constant] struct {
 }
 
-func (l *List[T]) Add(t T) {
+func (l *List[T, X, V]) Add(t T) {
 
 }
 
-type Vector = List[any]
+type Vector = List[any, any, Constant]
 
 type Package struct {
 	PackageDefinition RefId
@@ -111,9 +112,12 @@ type Struct struct {
 	Name               string
 	Fields             []*Field
 	Methods            []*Method
+	Generics           Generics
 	Constructor        Function
 	WhiteSpaceInFields int
 }
+
+type Generics []*Field
 type Method struct {
 	*Function
 	Recv *Recv
