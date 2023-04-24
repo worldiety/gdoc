@@ -163,23 +163,23 @@ func (afc AFunctionComment) String() string {
 func (generics AGenerics) String() string {
 	var s string
 	var sep = comma + ws
-	typeMap := make(map[string][]string, 0)
+	typeMap := make(map[ATypeDesc][]string, 0)
 	for _, g := range generics {
-		if typeMap[g.TypeDesc.SrcTypeDefinition] == nil {
-			typeMap[g.TypeDesc.SrcTypeDefinition] = make([]string, 0)
+		if typeMap[g.typeDescription()] == nil {
+			typeMap[g.typeDescription()] = make([]string, 0)
 		}
-		typeMap[g.TypeDesc.SrcTypeDefinition] = append(typeMap[g.TypeDesc.SrcTypeDefinition], g.Name)
+		typeMap[g.typeDescription()] = append(typeMap[g.typeDescription()], g.Name)
 	}
 	for ts, nameList := range typeMap {
 		for _, name := range nameList {
 			s += nameFormat(name) + sep
 		}
 		s = strings.TrimSuffix(s, sep)
-		s += ws + typeFormat(ts) + sep
+		s += ws + ts.typeString() + sep
 	}
 	s = strings.TrimSuffix(s, sep)
 	if s != "" {
-		s = enclosingBrackets(square, s)
+		s = passThrough("[") + s + passThrough("]")
 	}
 	return s
 }

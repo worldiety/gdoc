@@ -174,7 +174,6 @@ type TypeDesc struct {
 	TypeDefinition    RefId
 	SrcTypeDefinition string
 	Pointer           bool
-	Link              bool
 	Linebreak         bool
 	MapType           *MapType
 	TypeOrigin        TypeOrigin

@@ -320,7 +320,7 @@ func (s AStruct) AFields() []AField {
 	return aFields
 }
 
-func (f AField) TypeDescription() ATypeDesc {
+func (f AField) typeDescription() ATypeDesc {
 	return NewATypeDesc(*f.TypeDesc)
 }
 

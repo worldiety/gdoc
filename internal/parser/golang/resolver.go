@@ -109,6 +109,9 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 		for _, f := range s.Fields {
 			handleField(f, p, lp)
 		}
+		for _, g := range s.Generics {
+			handleField(g, p, lp)
+		}
 		for _, m := range s.Methods {
 			handleMethod(m, p, lp)
 		}
@@ -190,7 +193,6 @@ func handleMapType(f *api.Field, pName string, lp *loadedPackages) {
 
 func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
 	var importPath string
-	var link bool
 	var origin api.TypeOrigin
 
 	// from current package or built-in
@@ -198,7 +200,6 @@ func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
 		if p := lp.pkgs[pName]; p != nil {
 			if t := p.Types.Scope().Lookup(td.Identifier()); t != nil {
 				importPath = p.PkgPath
-				link = true
 				origin = api.LocalCustom
 			}
 		}
@@ -206,14 +207,12 @@ func typeDescInfo(pName string, td *api.TypeDesc, lp *loadedPackages) {
 		// from other package
 		if ok, p := externalCustomPkg(*td, *lp); ok {
 			importPath = p.PkgPath
-			link = true
 			origin = api.ExternalCustom
 		} else {
 			origin = api.ExternalNonCustom
 		}
 	}
 	td.TypeDefinition = api.NewRefID(importPath, td.Identifier())
-	td.Link = link
 	td.TypeOrigin = origin
 }
 
