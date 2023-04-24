@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const (
+	readmeFileName = "readme.md"
+)
+
 func newModule(dir string, modname string, pkgs map[string]Package) (*api.Module, error) {
 	m := &api.Module{
 		Name:   modname,
@@ -32,7 +36,7 @@ func newModule(dir string, modname string, pkgs map[string]Package) (*api.Module
 func tryLoadReadme(dir string) string {
 	files, _ := os.ReadDir(dir)
 	for _, file := range files {
-		if file.Type().IsRegular() && strings.ToLower(file.Name()) == "readme.md" {
+		if file.Type().IsRegular() && strings.ToLower(file.Name()) == readmeFileName {
 			buf, _ := os.ReadFile(filepath.Join(dir, file.Name()))
 			if len(buf) != 0 {
 				return string(buf)

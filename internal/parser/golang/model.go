@@ -59,10 +59,6 @@ func (p APackage) RefID() APackageRefID {
 	return NewAPackageRefID(p.PackageDefinition)
 }
 
-func (AComment) name() {
-
-}
-
 // APackage is a decorator struct for the api.Package struct
 type APackage struct {
 	api.Package

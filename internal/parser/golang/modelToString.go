@@ -108,11 +108,15 @@ func (c AConst) String() string {
 func (consts AConstBlock) String() string {
 	var s string
 	for _, c := range consts.sort().consts() {
-		s += c.String() + preservedLinebreak
+		if constString := c.String(); constString != "" {
+			s += c.String() + preservedLinebreak
+		}
 	}
 	s = strings.TrimSuffix(s, preservedLinebreak)
-	if consts.Doc != "" {
+	if consts.Doc != "" && s != "" {
 		s = codeBlock(s) + consts.Doc
+	} else if s != "" {
+		s = codeBlock(s)
 	}
 
 	return s
@@ -121,7 +125,10 @@ func (consts AConstBlock) String() string {
 func (blocks AConstBlockList) String() string {
 	var s string
 	for _, block := range blocks {
-		s += block.String() + preservedLinebreak
+		if blockString := block.String(); blockString != "" {
+			s += blockString + preservedLinebreak
+		}
+
 	}
 	s = strings.TrimSuffix(s, preservedLinebreak)
 
