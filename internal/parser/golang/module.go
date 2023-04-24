@@ -71,20 +71,16 @@ func newPackage(pkg Package) *api.Package {
 
 			p.Functions[f.Name] = newFunc(f)
 		}
-
 	}
 
 	if len(pkg.dpkg.Consts) > 0 {
-		p.Consts = map[string]*api.Constant{}
 		for _, value := range pkg.dpkg.Consts {
-			for _, d := range newValue(value) {
-				p.Consts[d.name] = &api.Constant{
-					Comment:     d.doc,
-					Name:        d.name,
-					TypeDesc:    &api.TypeDesc{Linebreak: true},
-					Stereotypes: []api.Stereotype{api.StereotypeStruct},
-				}
+			tmp := make([]api.Constant, 0)
+			constants, docV := newValue(value)
+			for _, d := range constants {
+				tmp = append(tmp, api.NewConstant(api.NewRefID(pkg.dpkg.ImportPath, d.name), d.comment, d.value))
 			}
+			p.Consts = append(p.Consts, api.NewConstantBlock(tmp, docV))
 		}
 	}
 
@@ -122,6 +118,19 @@ func newPackage(pkg Package) *api.Package {
 	return p
 }
 
+func getValue(value *doc.Value) []any {
+	var res []any
+	for _, spec := range value.Decl.Specs {
+		switch s := spec.(type) {
+		case *ast.ValueSpec:
+			for _, v := range s.Values {
+				res = append(res, v)
+			}
+		}
+	}
+	return res
+}
+
 func newStruct(value *doc.Type) *api.Struct {
 	var f []*api.Field
 	myStruct := &api.Struct{
@@ -137,7 +146,7 @@ func newStruct(value *doc.Type) *api.Struct {
 				for _, p := range s.TypeParams.List {
 					for _, n := range p.Names {
 						nf := newField(p, nil, n.Name)
-						nf.Stereotypes = []api.Stereotype{api.StereoTypeGeneric}
+						nf.Stereotypes = []api.Stereotype{api.StereotypeGeneric}
 						myStruct.Generics = append(myStruct.Generics, nf)
 
 					}
@@ -292,31 +301,34 @@ func isPointerType(expr ast.Expr) bool {
 }
 
 type docValue struct {
-	doc  string
-	name string
+	comment string
+	name    string
+	value   any
 }
 
-func newValue(value *doc.Value) []docValue {
+func newValue(value *doc.Value) ([]docValue, string) {
 	var res []docValue
+	var actualDoc string
 	groupDoc := value.Doc
 	for _, spec := range value.Decl.Specs {
 		switch t := spec.(type) {
 		case *ast.ValueSpec:
-			actualDoc := t.Doc.Text()
-			for _, name := range t.Names {
+			actualDoc = t.Doc.Text()
+			for i, name := range t.Names {
 				if !name.IsExported() {
 					continue
 				}
 				res = append(res, docValue{
-					doc:  strings.TrimSpace(groupDoc + "\n" + actualDoc),
-					name: name.Name,
+					comment: t.Comment.Text(),
+					name:    name.Name,
+					value:   t.Values[i],
 				})
 			}
 
 		}
 	}
 
-	return res
+	return res, strings.TrimSpace(groupDoc + "\n" + actualDoc)
 }
 
 func ast2str(n ast.Node) string {
@@ -386,15 +398,16 @@ func ast2str(n ast.Node) string {
 		return s
 	case *ast.FieldList:
 		s := ""
+		sep := ws + comma
 		for _, field := range t.List {
 			for _, name := range field.Names {
-				s += name.Name + " ,"
+				s += name.Name + sep
 			}
-			s = strings.TrimSuffix(s, ",")
+			s = strings.TrimSuffix(s, comma)
 			s += ast2str(field.Type)
 		}
 
-		s = strings.TrimSuffix(s, " ,")
+		s = strings.TrimSuffix(s, sep)
 		return s
 	case *ast.IndexListExpr:
 		var s string

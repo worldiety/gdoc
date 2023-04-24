@@ -3,7 +3,9 @@ package golang
 import (
 	"fmt"
 	"github.com/worldiety/gdoc/internal/api"
+	"go/ast"
 	"golang.org/x/exp/slices"
+	"strconv"
 	"strings"
 )
 
@@ -65,8 +67,12 @@ func (v AVariables) String() string {
 	varMap := make(map[commentStatus]string)
 
 	for _, current := range v.sort() {
-		if current.Comment == "" && current.Doc == "" {
-			varMap[uncommented] += current.StringRaw()
+		if current.Doc == "" {
+			if current.Comment != "" {
+				varMap[uncommented] += trimAllSuffixLinebreaks(current.StringRaw()) + ws + commentPrefix + ws + current.Comment + simpleLinebreak
+			} else {
+				varMap[uncommented] += current.StringRaw()
+			}
 		} else {
 			varMap[commented] += current.String()
 		}
@@ -83,6 +89,49 @@ func (v AVariables) String() string {
 	s = strings.Trim(s, simpleLinebreak)
 	return fmt.Sprintf("%s%s%s", v.title(), simpleLinebreak, s)
 }
+
+func (c AConst) String() string {
+	var s, comm string
+
+	if value, ok := getStringValue(c.Value); ok {
+		if c.Comment != "" {
+			comm = fmt.Sprintf("%s%s%s", commentPrefix, ws, c.Comment)
+		}
+		s = fmt.Sprintf("%s%s%s%s%s%s%s", typeFormat(c0nst), ws, c.name().String(), ws, operatorFormat(equals), ws, value)
+		if comm != "" {
+			s += comm
+		}
+	}
+	return s
+}
+
+func (consts AConstBlock) String() string {
+	var s string
+	for _, c := range consts.sort().consts() {
+		s += c.String() + preservedLinebreak
+	}
+	s = strings.TrimSuffix(s, preservedLinebreak)
+	if consts.Doc != "" {
+		s = codeBlock(s) + consts.Doc
+	}
+
+	return s
+}
+
+func (blocks AConstBlockList) String() string {
+	var s string
+	for _, block := range blocks {
+		s += block.String() + preservedLinebreak
+	}
+	s = strings.TrimSuffix(s, preservedLinebreak)
+
+	if s != "" {
+		s = blocks.title() + preservedLinebreak + s
+	}
+
+	return s
+}
+
 func (f AField) String() string {
 	var whiteSpace string
 	if f.Name != "" {
@@ -230,4 +279,41 @@ func (ac AComment) String() string {
 	}
 
 	return result
+}
+
+func getStringValue(val interface{}) (string, bool) {
+	switch v := val.(type) {
+	case string:
+		return v, true
+	case bool:
+		return strconv.FormatBool(v), true
+	case int:
+		return strconv.Itoa(v), true
+	case int8:
+		return strconv.FormatInt(int64(v), 10), true
+	case int16:
+		return strconv.FormatInt(int64(v), 10), true
+	case int32:
+		return strconv.FormatInt(int64(v), 10), true
+	case int64:
+		return strconv.FormatInt(v, 10), true
+	case uint:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint8:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint16:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint32:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint64:
+		return strconv.FormatUint(v, 10), true
+	case float32:
+		return strconv.FormatFloat(float64(v), 'f', -1, 32), true
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64), true
+	case *ast.BasicLit:
+		return v.Value, true
+	default:
+		return "", false
+	}
 }

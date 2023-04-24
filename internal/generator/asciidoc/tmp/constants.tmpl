@@ -1,9 +1,0 @@
-{{- define "constants" -}}
-{{- if . }}
-=== Constants
-{{ range . }}
-* {{ .Name }}
-{{ if .Comment }}** __Comment__: {{ .Comment }}{{ end -}}
-{{ end }}
-{{- end }}
-{{- end }}

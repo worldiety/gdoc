@@ -19,7 +19,7 @@ const (
 	functionDecl     = "functionDecl"
 	functionCall     = "functionCall"
 	variable         = "variable"
-	Const            = "constant"
+	c0nst            = "const"
 	operator         = "operator"
 	control          = "control"
 	preprocessor     = "preprocessor"

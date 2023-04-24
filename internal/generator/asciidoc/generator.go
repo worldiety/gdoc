@@ -51,6 +51,10 @@ func executeTemplate(t *template.Template, items any, dest *bytes.Buffer) error 
 		if err := t.ExecuteTemplate(dest, variablesTemplate, items); err != nil {
 			return fmt.Errorf("unable to execute %s: %w", variablesTemplate, err)
 		}
+	case golang.AConstBlockList:
+		if err := t.ExecuteTemplate(dest, constantsTemplate, items); err != nil {
+			return fmt.Errorf("unable to execute %s: %w", constantsTemplate, err)
+		}
 	case golang.AsciiDocHeader:
 		if err := t.ExecuteTemplate(dest, headerTemplate, items); err != nil {
 			return fmt.Errorf("unable to execute %s: %w", headerTemplate, err)
@@ -80,7 +84,7 @@ func CreateModuleTemplate(module golang.AModule) (*bytes.Buffer, error) {
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		data := []any{golang.NewAVariables(p.Vars) /*, p.Consts*/, golang.NewAStructs(p.Structs), golang.NewAFunctions(p.Functions)}
+		data := []any{golang.NewAConstBlockList(p.Consts), golang.NewAVariables(p.Vars), golang.NewAStructs(p.Structs), golang.NewAFunctions(p.Functions)}
 		for _, items := range data {
 			if err := executeTemplate(Templates, items, &outPut); err != nil {
 

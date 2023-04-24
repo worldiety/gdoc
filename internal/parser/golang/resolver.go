@@ -49,8 +49,10 @@ func addCommentLinks(m *api.Module) {
 			v.Comment = handleComment(v.Comment, p, m)
 			v.Doc = handleComment(v.Doc, p, m)
 		}
-		for _, c := range p.Consts {
-			c.Comment = handleComment(c.Comment, p, m)
+		for _, consts := range p.Consts {
+			for _, c := range consts.Content {
+				c.Comment = handleComment(c.Comment, p, m)
+			}
 		}
 	}
 }
@@ -87,9 +89,11 @@ func addVariableInfo(p *api.Package, lp *loadedPackages, path string) {
 	}
 }
 func addConstantInfo(p *api.Package, path string) {
-	for id, constant := range p.Consts {
-		constant.TypeDesc.TypeDefinition = api.NewRefID(path, id)
-		p.Types[constant.Name] = constant.TypeDesc.TypeDefinition
+	for _, block := range p.Consts {
+		for _, constant := range block.Content {
+			constant.RefId = api.NewRefID(path, p.PackageDefinition.ImportPath)
+			p.Types[constant.RefId.Identifier] = constant.RefId
+		}
 	}
 }
 func addFunctionInfo(p *api.Package, lp *loadedPackages, path string) {

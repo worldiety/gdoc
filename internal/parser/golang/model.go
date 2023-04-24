@@ -3,6 +3,7 @@ package golang
 import (
 	"fmt"
 	"github.com/worldiety/gdoc/internal/api"
+	"golang.org/x/exp/slices"
 	"strings"
 )
 
@@ -14,6 +15,7 @@ const (
 	structTitlePrefix    = "Struct"
 	funcsTitlePrefix     = "Functions"
 	variablesTitlePrefix = "Variables"
+	constantsTitlePrefix = "Consts"
 	funcTitlePrefix      = "func"
 	varPrefix            = "var"
 	toc                  = ":toc:"
@@ -285,6 +287,51 @@ func (v AVariables) sort() []AVariable {
 	})
 }
 
+func (consts AConstBlock) sort() AConstBlock {
+	slices.SortFunc(consts.Content, func(a, b api.Constant) bool {
+		return a.RefId.Identifier < b.RefId.Identifier
+	})
+	return consts
+}
+
+func (consts AConstBlock) consts() []AConst {
+	res := make([]AConst, 0)
+	for _, constant := range consts.Content {
+		res = append(res, NewAConst(constant))
+	}
+	return res
+}
+
+type AConst struct {
+	api.Constant
+}
+
+func (c AConst) name() AFieldName {
+	return AFieldName(c.RefId.Identifier)
+}
+
+func NewAConst(c api.Constant) AConst {
+	return AConst{c}
+}
+
+type AConstBlock struct {
+	api.ConstantBlock
+}
+
+func NewAConstBlock(consts api.ConstantBlock) AConstBlock {
+	return AConstBlock{consts}
+}
+
+type AConstBlockList []AConstBlock
+
+func NewAConstBlockList(blocks []api.ConstantBlock) AConstBlockList {
+	res := make([]AConstBlock, 0)
+	for _, block := range blocks {
+		res = append(res, NewAConstBlock(block))
+	}
+	return res
+}
+
 func (ms AMethods) sort() []AMethod {
 	return SortMapValues(ms, func(a, b AMethod) bool {
 		return a.Name < b.Name
@@ -298,8 +345,12 @@ const (
 	commented
 )
 
-func (v AVariables) title() string {
+func (AVariables) title() string {
 	return title(variablesTitlePrefix, "", "", 3)
+}
+
+func (AConstBlockList) title() string {
+	return title(constantsTitlePrefix, "", "", 3)
 }
 
 type AField struct {

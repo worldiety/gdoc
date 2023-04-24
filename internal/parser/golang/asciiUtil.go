@@ -23,6 +23,7 @@ const (
 	hyphen             = "-"
 	asterisk           = "*"
 	comma              = ","
+	equals             = "="
 	nbsp               = "{nbsp}"
 )
 

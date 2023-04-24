@@ -46,13 +46,14 @@ func (id RefId) PackageName() string {
 // Stereotype as usually interpreted in found context but not expressed in language explicitly.
 type Stereotype string
 
+// Doc for a const block
 const (
-	StereotypeConstructor     = "constructor"
+	StereotypeConstructor     = "constructor" // the constructor of a struct
 	StereotypeMethod          = "method"
 	StereotypeSingleton       = "singleton"
 	StereotypeEnum            = "enum"
 	StereotypeEnumElement     = "enumElement"
-	StereotypeDestructor      = "destructor"
+	StereotypeDestructor      = "destructor" // the destructor of a struct
 	StereotypeExecutable      = "executable"
 	StereotypeStruct          = "struct"
 	StereotypeClass           = "class"
@@ -61,7 +62,14 @@ const (
 	StereotypeParameterIn     = "in"
 	StereotypeParameterOut    = "out"
 	StereotypeParameterResult = "result"
-	StereoTypeGeneric         = "generic"
+	StereotypeGeneric         = "generic"
+)
+
+// DOcoDodsoss
+const (
+	Igdsakf    = "gsdkfmsöas" // tetsteest
+	Fglksmdgöw = "skjglksdf"
+	Alskadfnad = "alkfösdgö"
 )
 
 type ImportPath = string
@@ -101,7 +109,7 @@ type Package struct {
 	Imports           Imports
 	Stereotypes       []Stereotype
 	Types             map[string]RefId
-	Consts            map[string]*Constant
+	Consts            []ConstantBlock
 	Vars              map[string]*Variable
 	Functions         map[string]*Function
 	Structs           map[string]*Struct
@@ -206,7 +214,32 @@ func NewVariable(name, comment, doc string, t *TypeDesc) *Variable {
 	}
 }
 
-type Constant Field
+type ConstantBlock struct {
+	Doc     string
+	Content []Constant
+}
+
+func NewConstantBlock(consts []Constant, doc string) ConstantBlock {
+	return ConstantBlock{
+		Doc:     doc,
+		Content: consts,
+	}
+}
+
+type Constant struct {
+	RefId   RefId
+	Value   any
+	Comment string
+}
+
+func NewConstant(refId RefId, comment string, value any) Constant {
+	return Constant{
+		RefId:   refId,
+		Value:   value,
+		Comment: comment,
+	}
+}
+
 type Variable Field
 type Import string
 type Imports []Import
