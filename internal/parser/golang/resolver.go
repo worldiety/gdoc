@@ -105,6 +105,15 @@ func addFunctionInfo(p *api.Package, lp *loadedPackages, path string) {
 		handleFields(function.Results, p, lp)
 	}
 }
+
+func addConstructorInfo(s *api.Struct, p *api.Package, lp *loadedPackages) {
+	for _, function := range s.Constructors {
+		function.TypeDefinition = api.NewRefID(s.TypeDefinition.ImportPath, function.Name)
+		p.Types[function.Name] = function.TypeDefinition
+		handleFields(function.Parameters, p, lp)
+		handleFields(function.Results, p, lp)
+	}
+}
 func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 	for id, s := range p.Structs {
 		s.TypeDefinition = api.NewRefID(path, id)
@@ -119,6 +128,9 @@ func addStructInfo(p *api.Package, lp *loadedPackages, path string) {
 		for _, m := range s.Methods {
 			handleMethod(m, p, lp)
 		}
+
+		addConstructorInfo(s, p, lp)
+
 	}
 }
 

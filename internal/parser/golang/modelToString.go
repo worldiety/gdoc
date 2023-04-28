@@ -31,12 +31,23 @@ func (p APackage) String() string {
 }
 
 func (fn AFunction) String() string {
+	if fn.Name == "" {
+		print("hit")
+	}
 	return fmt.Sprintf("%s%s%s%s%s", bold(fn.name()), preservedLinebreak,
 		codeBlock(fn.asciidocFormattedSignature()), simpleLinebreak, fn.comment().String())
 }
 
 func (af AFunctions) String() string {
 	return af.title()
+}
+
+func (c AConstructors) String() string {
+	var constructorString string
+	for _, fn := range c {
+		constructorString += fn.String()
+	}
+	return constructorString
 }
 
 func (m AMethod) String() string {
@@ -157,7 +168,7 @@ func (f AField) String() string {
 	var nameString string
 	if slices.Contains(f.Stereotypes, api.StereotypeProperty) {
 		nameString = indent(f.name().String(), 2)
-	} else {
+	} else if f.Name != "" {
 		nameString = f.name().String()
 	}
 	s := fmt.Sprintf("%s%s%s%s%s",
@@ -205,8 +216,13 @@ func (s AStruct) String() string {
 			enclose(hash, indent(filteredFieldsNotice, 2)), preservedLinebreak)
 	}
 
-	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s", s.title(), preservedLinebreak, codeBlock(fmt.Sprintf("%s%s%s%s", s.asciidocFormattedSigOpen(),
-		fieldsString, s.asciidocFormattedSigClose(), preservedLinebreak)), commentString, s.methods().String(), simpleLinebreak, simpleLinebreak, "'''", simpleLinebreak)
+	var constructorString string
+	if s.constructors() != nil {
+		constructorString = s.constructors().String()
+	}
+
+	return fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s", s.title(), preservedLinebreak, codeBlock(fmt.Sprintf("%s%s%s%s", s.asciidocFormattedSigOpen(),
+		fieldsString, s.asciidocFormattedSigClose(), preservedLinebreak)), commentString, constructorString, s.methods().String(), simpleLinebreak, simpleLinebreak, "'''", simpleLinebreak)
 }
 
 func (afc AFunctionComment) String() string {

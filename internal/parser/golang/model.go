@@ -130,6 +130,12 @@ func (s AStruct) methods() AMethods {
 	return NewAMethods(s.Methods)
 }
 
+type AConstructors map[string]AFunction
+
+func (s AStruct) constructors() AConstructors {
+	return NewAConstructors(s.Constructors)
+}
+
 type AStructs map[string]AStruct
 
 func (as AStructs) title() string {
@@ -214,6 +220,14 @@ func name(fn AFunction, recv *ARecv) string {
 type AFunctions map[string]AFunction
 
 func NewAFunctions(funcs map[string]*api.Function) AFunctions {
+	aFunctions := map[string]AFunction{}
+	for _, fn := range funcs {
+		aFunctions[fn.Name] = NewAFunction(*fn)
+	}
+	return aFunctions
+}
+
+func NewAConstructors(funcs []*api.Function) AConstructors {
 	aFunctions := map[string]AFunction{}
 	for _, fn := range funcs {
 		aFunctions[fn.Name] = NewAFunction(*fn)

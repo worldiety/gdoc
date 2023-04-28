@@ -165,6 +165,8 @@ func (fn AFunction) asciidocFormattedResults() string {
 	}
 	if len(fn.Results) > 1 {
 		s = enclosingBrackets(round, results)
+	} else {
+		s = results
 	}
 
 	return s

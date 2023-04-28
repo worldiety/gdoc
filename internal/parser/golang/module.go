@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	readmeFileName = "readme.md"
+	readmeFileName    = "readme.md"
+	constructorPrefix = "New"
 )
 
 func newModule(dir string, modname string, pkgs map[string]Package) (*api.Module, error) {
@@ -152,7 +153,6 @@ func newStruct(value *doc.Type) *api.Struct {
 						nf := newField(p, nil, n.Name)
 						nf.Stereotypes = []api.Stereotype{api.StereotypeGeneric}
 						myStruct.Generics = append(myStruct.Generics, nf)
-
 					}
 				}
 			}
@@ -181,6 +181,12 @@ func newStruct(value *doc.Type) *api.Struct {
 				}
 				myStruct.Methods = append(myStruct.Methods, newMethod(method, newField(method.Decl.Recv.List[0], myStruct, methodName)))
 			}
+		}
+	}
+
+	for _, fn := range value.Funcs {
+		if isExported(fn.Name) && strings.HasPrefix(fn.Name, constructorPrefix) {
+			myStruct.Constructors = append(myStruct.Constructors, newFunc(fn))
 		}
 	}
 

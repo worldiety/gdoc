@@ -121,7 +121,7 @@ type Struct struct {
 	Fields             []*Field
 	Methods            []*Method
 	Generics           Generics
-	Constructor        Function
+	Constructors       []*Function
 	WhiteSpaceInFields int
 }
 
