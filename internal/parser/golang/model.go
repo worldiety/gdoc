@@ -31,7 +31,7 @@ type AsciiDocHeader struct {
 }
 
 func NewAsciiDocHeader() AsciiDocHeader {
-	s := []string{docInfo, toc, theme}
+	s := []string{docInfo, theme, toc}
 	return AsciiDocHeader{Attributes: s}
 }
 
