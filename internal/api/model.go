@@ -99,7 +99,32 @@ func (l *List[T, X, V]) Add(t T) {
 
 }
 
+type Person struct {
+	Firstname, Last string
+}
+
+type AddressBookPerson Person
+
+type AddressBookPerson2 struct {
+	Firstname, Last string
+}
+
+type BetterPerson = Person
+
+var x = struct{ Firstname, Last string }{}
+
+func bla() {
+	x = AddressBookPerson{Firstname: StereotypeProperty}
+	x = Person{}
+
+	var p Person = Person{}
+	p = Person(AddressBookPerson{})
+	p = BetterPerson{}
+	_ = p
+}
+
 type Vector = List[any, any, Constant]
+type Test2 func() string
 
 type Package struct {
 	PackageDefinition RefId

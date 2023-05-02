@@ -31,9 +31,6 @@ func (p APackage) String() string {
 }
 
 func (fn AFunction) String() string {
-	if fn.Name == "" {
-		print("hit")
-	}
 	return fmt.Sprintf("%s%s%s%s%s", bold(fn.name()), preservedLinebreak,
 		codeBlock(fn.asciidocFormattedSignature()), simpleLinebreak, fn.comment().String())
 }

@@ -9,8 +9,6 @@ import (
 	"github.com/worldiety/gdoc/internal/parser/golang"
 	"gopkg.in/yaml.v3"
 	"log"
-	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -27,28 +25,12 @@ func (f OutputFormat) Category() string {
 	}
 }
 
-type theme = string
-
 const (
-	dark  theme = "dark"
-	light theme = "light"
-)
-
-const (
-	Yaml           = "yaml"
-	Json           = "json"
-	Adoc           = "adoc"
-	Pdf            = "pdf"
-	Html           = "html"
-	themeFile      = "docinfo.html"
-	codeBgLight    = "background-color: #F9F8F5;"
-	codeBgDark     = "background-color: #343231;"
-	articleBgDark  = "background-color: #3C4041;"
-	articleBgLight = "background-color: #FFFFFF;"
-	fontColorLight = "color: #0E0E0D;"
-	fontColorDark  = "color: #C1C1C1;"
-	linksDark      = "color: #9abbed;"
-	linksLight     = "color: #2156a5"
+	Yaml = "yaml"
+	Json = "json"
+	Adoc = "adoc"
+	Pdf  = "pdf"
+	Html = "html"
 )
 
 type Config struct {
@@ -56,7 +38,6 @@ type Config struct {
 	OutputFormat string
 	Packages     string
 	PkgSep       string
-	Theme        string
 }
 
 func (c *Config) Reset() {
@@ -68,10 +49,6 @@ func (c *Config) Reset() {
 	c.ModPath = wd
 	c.OutputFormat = Adoc
 	c.PkgSep = "/"
-	c.Theme = light
-	if darkMode() {
-		c.Theme = dark
-	}
 }
 
 func (c *Config) Flags(flags *flag.FlagSet) {
@@ -81,7 +58,6 @@ func (c *Config) Flags(flags *flag.FlagSet) {
 		"pdf is available, if asciidoctor-pdf is installed")
 	flags.StringVar(&c.Packages, "packages", c.Packages, "if not empty, only scan the listed packages separated by ;")
 	flags.StringVar(&c.PkgSep, "pkgSep", c.PkgSep, "sets the path separator between packages. Default is / which is not json-pointer friendly")
-	flags.StringVar(&c.Theme, "theme", c.Theme, "specify if you want to use dark or light mode. This will default to system settings or to light if system settings are unavailable")
 }
 
 // Apply takes a Config and uses the contained instructions to generate documentation.
@@ -90,9 +66,6 @@ func Apply(cfg Config) ([]byte, error) {
 	if len(pkgs) == 1 && pkgs[0] == "" {
 		pkgs = nil
 	}
-
-	//set theme
-	asciiDocThemeStyle(cfg.Theme)
 
 	node, err := golang.Parse(cfg.ModPath, pkgs...)
 	if err != nil {
@@ -144,59 +117,4 @@ func Apply(cfg Config) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("invalid output format: %s", cfg.OutputFormat)
 	}
-}
-
-func darkMode() bool {
-	cmd := exec.Command("defaults", "read", "-g", "AppleInterfaceStyle")
-	if err := cmd.Run(); err != nil {
-		if _, ok := err.(*exec.ExitError); ok {
-			return false
-		}
-	}
-	return true
-}
-
-func asciiDocThemeStyle(t theme) {
-
-	f, err := os.ReadFile(themeFile)
-	if err != nil {
-		log.Printf("could not open theme file %s. cause: %s", themeFile, err.Error())
-	}
-
-	s := string(f)
-	if t == dark {
-		// articleBG
-		s = replaceStyle(s, articleBgLight, articleBgDark, false)
-		// sourceCodeBG
-		s = replaceStyle(s, codeBgLight, codeBgDark, false)
-		// font Color
-		s = replaceStyle(s, fontColorLight, fontColorDark, false)
-		// linkColor
-		s = replaceStyle(s, linksLight, linksDark, true)
-	} else if t == light {
-		// articleBG
-		s = replaceStyle(s, articleBgDark, articleBgLight, false)
-		// sourceCodeBG
-		s = replaceStyle(s, codeBgDark, codeBgLight, false)
-		// font Color
-		s = replaceStyle(s, fontColorDark, fontColorLight, false)
-		// linkColor
-		s = replaceStyle(s, linksDark, linksLight, true)
-	}
-
-	err = os.WriteFile(themeFile, []byte(s), 0644)
-	if err != nil {
-		log.Printf("could not write to theme file %s. cause: %s", themeFile, err.Error())
-	}
-}
-
-func replaceStyle(s, old, new string, replaceMultiple bool) string {
-	n := 1
-	if replaceMultiple {
-		n = -1
-	}
-	if strings.Contains(s, old) {
-		s = strings.Replace(s, old, new, n)
-	}
-	return s
 }

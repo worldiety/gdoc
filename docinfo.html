@@ -68,31 +68,53 @@
         color: #B0D480;
     }
 
-    .article {
-        background-color: #3C4041;
-        color: #C1C1C1;
+    /*for dark theme*/
+    @media (prefers-color-scheme: dark) {
+
+        .article {
+            background-color: #3C4041;
+            color: #C1C1C1;
+        }
+
+        #header>h1:first-child {
+            color: #C1C1C1;
+        }
+
+        .code {
+            background-color: #343231;
+            font-family: monospace;
+            color: #C1C1C1;
+        }
+
+        #toctitle {
+            color: white;
+        }
+
+        .toc a {
+            color: #9abbed;
+        }
+
+        .paragraph a {
+            color: #9abbed;
+        }
     }
 
-    .code {
-        background-color: #343231;
-        font-family: monospace;
-        color: #C1C1C1;
-    }
+    /*for light theme*/
+    @media (prefers-color-scheme: light) {
+        .article {
+            background-color: #FFFFFF;
+            color: #0E0E0D;
+        }
 
-    #header>h1:first-child {
-        color: #C1C1C1;
-    }
+        #header>h1:first-child {
+            color: #0E0E0D;
+        }
 
-    #toctitle {
-        color: white;
-    }
-
-    .toc a {
-        color: #9abbed;
-    }
-
-    .paragraph a {
-        color: #9abbed;
+        .code {
+            background-color: #F9F8F5;
+            font-family: monospace;
+            color: #0E0E0D;
+        }
     }
 
     .mono {
