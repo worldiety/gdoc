@@ -20,6 +20,7 @@ const (
 	varPrefix            = "var"
 	toc                  = ":toc:"
 	docInfo              = ":docinfo: shared"
+	theme                = ":pdf-theme: my-theme.yml"
 	filteredFieldsNotice = "// contains filtered or unexported fields"
 )
 
@@ -30,7 +31,7 @@ type AsciiDocHeader struct {
 }
 
 func NewAsciiDocHeader() AsciiDocHeader {
-	s := []string{docInfo, toc}
+	s := []string{docInfo, theme, toc}
 	return AsciiDocHeader{Attributes: s}
 }
 
