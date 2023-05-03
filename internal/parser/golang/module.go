@@ -73,7 +73,6 @@ func newPackage(pkg Package) *api.Package {
 			if !f.Decl.Name.IsExported() {
 				continue
 			}
-
 			p.Functions[f.Name] = newFunc(f)
 		}
 	}
@@ -175,11 +174,11 @@ func newStruct(value *doc.Type) *api.Struct {
 	for _, method := range value.Methods {
 		if isExported(method.Name) {
 			if method.Decl.Recv.List != nil {
-				var methodName string
+				var recvName string
 				if len(method.Decl.Recv.List[0].Names) > 0 {
-					methodName = method.Decl.Recv.List[0].Names[0].Name
+					recvName = method.Decl.Recv.List[0].Names[0].Name
 				}
-				myStruct.Methods = append(myStruct.Methods, newMethod(method, newField(method.Decl.Recv.List[0], myStruct, methodName)))
+				myStruct.Methods = append(myStruct.Methods, newMethod(method, newField(method.Decl.Recv.List[0], myStruct, recvName)))
 			}
 		}
 	}

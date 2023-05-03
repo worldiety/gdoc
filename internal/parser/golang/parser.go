@@ -64,9 +64,6 @@ func Parse(dir string, onlyImports ...string) (*api.Module, error) {
 		}
 
 		for _, astPkg := range pkgs {
-			if astPkg.Name == "test" {
-				continue
-			}
 			pkg := doc.New(astPkg, importPath, doc.AllDecls)
 			module[pkg.ImportPath] = Package{
 				pkg:  astPkg,

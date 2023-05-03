@@ -65,13 +65,6 @@ const (
 	StereotypeGeneric         = "generic"
 )
 
-// DOcoDodsoss
-const (
-	Igdsakf    = "gsdkfmsöas" // tetsteest
-	Fglksmdgöw = "skjglksdf"
-	Alskadfnad = "alkfösdgö"
-)
-
 type ImportPath = string
 
 // A Module contains various [Package] Pointers.
@@ -268,3 +261,7 @@ func NewConstant(refId RefId, comment string, value any) Constant {
 type Variable Field
 type Import string
 type Imports []Import
+
+func TestFunc(s string) string {
+	return fmt.Sprintf("Hello %s", s)
+}

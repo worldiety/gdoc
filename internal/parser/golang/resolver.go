@@ -84,7 +84,10 @@ func addTypeInformation(m *api.Module, lp *loadedPackages) {
 func addVariableInfo(p *api.Package, lp *loadedPackages, path string) {
 	for id, v := range p.Vars {
 		v.TypeDesc.TypeDefinition = api.NewRefID(path, id)
-		p.Types[v.Name] = v.TypeDesc.TypeDefinition
+		pkgName := strings.Replace(v.TypeDesc.SrcTypeDefinition, "*", "", -1)
+		if _, ok := lp.pkgs[pkgName]; ok {
+			p.Types[v.Name] = v.TypeDesc.TypeDefinition
+		}
 		typeDescInfo(v.Name, v.TypeDesc, lp)
 	}
 }
